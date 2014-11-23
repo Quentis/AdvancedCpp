@@ -34,21 +34,41 @@
  * */
 
 #include<vector>
+#include<iterator>
 
 using namespace std;
 
 class FlatMatrix {
-
+private:
     int row_count;
     int column_count;
     vector<double> elements;
 
+public:
+    void insert_row(vector<double>::iterator row_begin, vector<double>::iterator row_end, unsigned row_idx)
+    {
 
-    void insert_row(vector<double>& )
+    }
 
+    void insert_column(vector<double>::iterator column_begin, vector<double>::iterator column_end, unsigned column_idx)
+    {
 
+    }
 
+    const double& get_element(int row, int column) const
+    {
 
+    }
+
+    const vector<double>& get_row(int row) const
+	{
+
+	}
+
+    const vector<double>& get_column(int row) const
+	{
+
+	}
 };
 
 int main(int argc, char *argv[])
