@@ -33,14 +33,25 @@
  *     -7.*.*.1 A mûveletek elsõsorban a mátrix elejét érintik
  * */
 
-#include <vector.h>
+#include<vector>
+
+using namespace std;
 
 class FlatMatrix {
 
+    int row_count;
+    int column_count;
     vector<double> elements;
 
+
+    void insert_row(vector<double>& )
 
 
 
 
 };
+
+int main(int argc, char *argv[])
+{
+
+}
