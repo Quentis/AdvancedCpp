@@ -107,21 +107,31 @@ class fifo
         return success;
     }
 
-    public:
-    fifo() : fifo(DEFAULT_POOL_SIZE, DEFAULT_MAX_POOL_SIZE){}
-
-    fifo(size_t pool_size, size_t max_pool_size) :
-        head(INVALID_INDEX), tail(INVALID_INDEX), pool(NULL),
-        pool_size(pool_size), max_pool_size(max_pool_size),
-        empty_head(0)
+    void init(size_t pool_size, size_t max_pool_size)
     {
-        pool = new fifo_element<T>[pool_size];
-        for (int32_t idx = 0; idx < pool_size; ++idx)
+        this->head = INVALID_INDEX;
+        this->tail = INVALID_INDEX;
+        this->pool = new fifo_element<T>[pool_size];
+        this->pool_size = pool_size;
+        this->max_pool_size = max_pool_size;
+        this->empty_head = 0;
+
+        for (int32_t idx = 0; idx < this->pool_size; ++idx)
         {
-            pool[idx].next = ( idx != (pool_size - 1) ) ? (idx + 1) : INVALID_INDEX;
+            this->pool[idx].next = ( idx != (this->pool_size - 1) ) ? (idx + 1) : INVALID_INDEX;
         }
     }
 
+    public:
+    fifo()
+    {
+        init(DEFAULT_POOL_SIZE, DEFAULT_MAX_POOL_SIZE);
+    }
+
+    fifo(size_t pool_size, size_t max_pool_size)
+    {
+        init(pool_size, max_pool_size);
+    }
     ~fifo()
     {
         delete[] pool;
