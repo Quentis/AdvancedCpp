@@ -50,7 +50,7 @@ private:
     /** The elements of the matrix are stored in a vector. The vector is row organized which means the row members are
      *  next to each other (consecutive indexes) so rows can be added and read faster then the columns. The rows are
      *  stored in reverse order because specification states that the operations affects the first rows of the matrix
-     *  (the insertion to the vector container is fast if the elemnts are added at the end of the container).
+     *  (the insertion to the vector container is fast if the elements are added at the end of the container).
      *  [a11 a12 a13]
      *  [a21 a22 a23] --> [a31 a32 a33 a21 a22 a23 a11 a12 a13]
      *  [a31 a32 a33] */
@@ -99,7 +99,31 @@ private:
 
     void insert_column_vector(vector<double> column_vector, unsigned column_idx)
     {
+        if((row_dim != 0) && (column_dim != 0))
+        {
+            if(column_vector.size() != row_dim)
+            {
+                throw runtime_error("Row vector and FlatMatrix dimension mismatch.");
+            }
+        }
+        else if((row_dim == 0) && (column_dim == 0))
+        {
+            int column_vector_size = column_vector.size();
 
+            if(column_vector_size == 0)
+            {
+                throw runtime_error("Row vector dimension can't be zero.");
+            }
+
+            column_dim = 1;
+            row_dim = column_vector_size;
+
+            elements = column_vector;
+        }
+        else
+        {
+            throw runtime_error("Invalid FlatMatrix dimensions.");
+        }
     }
 
 public:
@@ -228,19 +252,19 @@ public:
 
     }
 
-    istream &operator>>(std::istream &is, FlatMatrix &m)
-    {
+    //istream &operator>>(std::istream &is, FlatMatrix &m)
+    //{
 
-    }
+    //}
 
-    ostream &operator<<(std::ostream &os, const FlatMatrix &m)
-    {
+    //ostream &operator<<(std::ostream &os, const FlatMatrix &m)
+    //{
 
-    }
+    //}
 
 };
 
-int main(int argc, char *argv[])
-{
-
-}
+//int main(int argc, char *argv[])
+//{
+//
+//}
