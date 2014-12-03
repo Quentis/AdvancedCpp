@@ -87,7 +87,7 @@ public:
             this->row_dim = row_dim;
             this->column_dim = column_dim;
 
-            for (int idx = 0; idx < row_dim * column_dim; ++idx) {
+            for (unsigned idx = 0; idx < row_dim * column_dim; ++idx) {
                 elements.push_back(fill_value);
             }
         }
@@ -99,22 +99,6 @@ public:
 
     }
 
-    /** Creates a matrix from an iterator container based on the dimension parameters. If the dimensions are both zeros
-      * then it creates an empty matrix. If one of the dimension parameters is zero and the other is not it is considered
-      * invalid and a runtime_error is thrown.
-      * The iterator should contain the values of the matrix. If the row_organized parameter is true then it means
-      * the elements of the rows otherwise the columns are consecutive in the iterator.
-      *  [a11 a12 a13]
-      *  [a21 a22 a23] --> [a11 a12 a13 a21 a22 a23 a31 a32 a33]    //row_organized is true
-      *  [a31 a32 a33]     [a11 a21 a31 a12 a22 a32 a13 a23 a33]    //row_organized is false
-      */
-    // TODO: Currently not supported
-    //FlatMatrix(vector<double>::iterator row_begin, vector<double>::iterator row_end,
-    //           unsigned row_dim, unsigned column_dim, bool row_organized)
-    //{
-    //
-    //}
-
     /* Inserts a row in the matrix at the position determined by row_idx. The row_idx in the range of [1,row_dim]
      * determines an existing row so in this case the row is inserted at the place of this row and the existing is
      * shifted in the direction of increasing indexes. If the row_idx is in the range of (row_dim,infinity) then it
@@ -124,7 +108,7 @@ public:
     bool insert_row(const vector<double>& row_vector, unsigned row_idx)
     {
         bool success;
-        size_t row_vector_size = row_vector.size();
+        unsigned row_vector_size = row_vector.size();
 
         if((row_dim == 0) || (column_dim == 0))
         {   /* The matrix is empty */
@@ -165,7 +149,7 @@ public:
                 }
 
                 elements.insert(vi_dst, row_vector.begin(), row_vector.end());
-
+                row_dim++;
                 success = true;
             }
             else
@@ -185,7 +169,7 @@ public:
     bool insert_column(const vector<double>& column_vector, unsigned column_idx)
     {
         bool success;
-        size_t column_vector_size = column_vector.size();
+        unsigned column_vector_size = column_vector.size();
 
         if((column_dim == 0) || (row_dim == 0))
         {   /* The matrix is empty */
@@ -211,9 +195,9 @@ public:
         {   /* The matrix is not empty => strict dimension checks */
             if(column_vector_size >= row_dim)
             {
-                size_t new_size = elements.size() + row_dim;
-                size_t column_vector_idx = 0, elements_idx = 0;
-                size_t insert_idx;
+                unsigned new_size = elements.size() + row_dim;
+                unsigned column_vector_idx = 0, elements_idx = 0;
+                unsigned insert_idx;
 
                 if(column_idx < 1)
                 {
@@ -232,7 +216,7 @@ public:
 
                 column_dim++;
 
-                for(size_t idx = 0; idx < new_size; ++idx)
+                for(unsigned idx = 0; idx < new_size; ++idx)
                 {   if(idx != insert_idx)
                     {
                         temp_vector[idx] = elements[elements_idx];
@@ -281,45 +265,168 @@ public:
 
     /* Copies the elements of the row at row_idx (valid: [1,row_dim]) into the passed vector reference. (operator=)
      * If the indexes are out of range then false is returned. */
-    bool get_row_const(unsigned row_idx, vector<double>) const
+    bool get_row_const(unsigned row_idx, vector<double> row_vector_out) const
     {
+        if( (1 < row_idx) && (row_idx <= row_dim) )
+        {
+            vector<double> temp_vector;
+            unsigned offset = get_flat_index(row_idx, 1);
 
+            temp_vector.insert(temp_vector.begin(), elements.begin() + offset, elements.begin() + offset + column_dim);
+            row_vector_out = move(temp_vector);
+            return true;
+        }
+        else
+        {
+            return false;
+        }
     }
 
     /* Copies the elements of the column at column_idx (valid: [1,column_dim]) into the passed vector reference. (operator=)
      * If the indexes are out of range then false is returned. */
-    bool get_column_const(unsigned column_idx, vector<double>) const
+    bool get_column_const(unsigned column_idx, vector<double> column_vector_out) const
     {
+        if( (1 < column_idx) && (column_idx <= row_dim) )
+        {
+            vector<double> temp_vector;
+            unsigned column_flat_idx = elements.size() - column_dim + column_idx;
 
+            for(unsigned idx = 0; idx < column_dim; idx++)
+            {
+                temp_vector.push_back(elements[column_flat_idx - idx * column_dim]);
+            }
+
+            column_vector_out = move(temp_vector);
+            return true;
+        }
+        else
+        {
+            return false;
+        }
     }
 
     /* Overwrites an element at row_idx (valid: [1,row_dim]) and column_idx (valid: [1,column_dim]) with value.
      * If the indexes are out of range then a runtime_error is thrown. */
-    bool modify_element(unsigned row_idx, unsigned column_idx, double value)
+    bool modify_element(unsigned row_idx, unsigned column_idx, const double& value)
     {
-
+        if( (row_idx > row_dim) || (row_idx < 1) || (column_idx > column_dim) || (column_idx < 1))
+        {
+            return false;
+        }
+        else
+        {
+            elements[get_flat_index(row_idx, column_idx)];
+            return true;
+        }
     }
 
     /* Overwrites the row at row_idx (valid: [1,row_dim]) with values in the given vector.
      * If row_idx is out of range then false is returned. If the vector is shorter then the column_dim then false is returned.
      * If the vector is longer then column_dim then only the first column_dim elements are added to the matrix.*/
-    bool modify_row(vector<double> row_vector, unsigned row_idx)
+    bool modify_row(const vector<double>& row_vector, unsigned row_idx)
     {
-
+        if( (1 < row_idx) && (row_idx <= row_dim) && (row_vector.size() != column_dim))
+        {
+            unsigned base = get_flat_index(row_idx, 1);
+            for(unsigned offset = 0; offset < column_dim; offset++)
+            {
+                elements[base + offset] = row_vector[offset];
+            }
+            return true;
+        }
+        else
+        {
+            return false;
+        }
     }
 
     /* Overwrites the column at column_idx (valid: [1,column_dim]) with values in the given vector.
      * If column_idx is out of range then false is returned. If the vector is shorter then the row_dim then false is returned.
      * If the vector is longer then row_dim then only the first row_dim elements are added to the matrix.*/
-    bool modify_column(vector<double> column_vector, unsigned column_idx)
+    bool modify_column(const vector<double>& column_vector, unsigned column_idx)
     {
+        if( (1 < column_idx) && (column_idx <= row_dim) )
+        {
+            unsigned column_flat_idx = elements.size() - column_dim + column_idx;
 
+            for(unsigned idx = 0; idx < column_dim; idx++)
+            {
+                elements[column_flat_idx - idx * column_dim] = column_vector[idx];
+            }
+
+            return true;
+        }
+        else
+        {
+            return false;
+        }
     }
 
-    //friend istream &operator>>(std::istream &is, FlatMatrix &m)
-    //{
+    friend istream& operator>>(std::istream &is, FlatMatrix &m)
+    {
+        enum class State {
+            READ,
+            COLUMN,
+            ROW
+        } state;
 
-    //}
+        vector<double> row_vector;
+        vector<vector<double>> matrix;
+
+        string element_raw;
+        vector<string> row_vector_raw;
+        vector<vector<string>> matrix_raw;
+
+        bool processing_active = true;
+
+        state = State::READ;
+
+        while(processing_active)
+        {
+            char c = cin.get();
+
+            switch(state)
+            {
+                case State::READ:
+                    if(c == '\n')
+                    {
+                        state = State::ROW;
+                    }
+                    else if(c == ' ')
+                    {
+                        state = State::COLUMN;
+                    }
+                    else if(c != '\r')
+                    {
+                        element_raw += c;
+                    }
+                    break;
+
+                case State::COLUMN:
+                    if(c == '\n')
+                    {
+                        state = State::ROW;
+                    }
+                    else if(c == ' ')
+                    {
+
+                    }
+                    break;
+
+                case State::ROW:
+                    if(c == '\n')
+                    {
+                        processing_active = false;
+                    }
+                    else if(c == '\r')
+                    {
+                        state = State::READ;
+                    }
+                    break;
+            }
+        }
+        return is;
+    }
 
     friend ostream& operator<<(std::ostream &os, const FlatMatrix &m)
     {
@@ -343,29 +450,33 @@ public:
 
 int main(int argc, char *argv[])
 {
-    FlatMatrix fm;
+    FlatMatrix fm1;
+    FlatMatrix fm2;
+    FlatMatrix fm3;
 
-//    vector<double> column_vector1;
-//    column_vector1.push_back(1);
-//    column_vector1.push_back(2);
-//    column_vector1.push_back(3);
-//
-//    vector<double> column_vector2;
-//    column_vector2.push_back(4);
-//    column_vector2.push_back(5);
-//    column_vector2.push_back(6);
-//
-//    vector<double> column_vector3;
-//    column_vector3.push_back(7);
-//    column_vector3.push_back(8);
-//    column_vector3.push_back(9);
-//
-//    fm.insert_column(column_vector1, 1);
-//    cout << fm << endl;
-//    fm.insert_column(column_vector2, 2);
-//    cout << fm << endl;
-//    fm.insert_column(column_vector3, 2);
-//    cout << fm << endl;
+    cin >> fm3;
+
+    vector<double> column_vector1;
+    column_vector1.push_back(1);
+    column_vector1.push_back(2);
+    column_vector1.push_back(3);
+
+    vector<double> column_vector2;
+    column_vector2.push_back(4);
+    column_vector2.push_back(5);
+    column_vector2.push_back(6);
+
+    vector<double> column_vector3;
+    column_vector3.push_back(7);
+    column_vector3.push_back(8);
+    column_vector3.push_back(9);
+
+    fm1.insert_column(column_vector1, 1);
+    cout << fm1 << endl;
+    fm1.insert_column(column_vector2, 2);
+    cout << fm1 << endl;
+    fm1.insert_column(column_vector3, 2);
+    cout << fm1 << endl;
 
     vector<double> row_vector1;
     row_vector1.push_back(1);
@@ -382,10 +493,10 @@ int main(int argc, char *argv[])
     row_vector3.push_back(8);
     row_vector3.push_back(9);
 
-    fm.insert_row(row_vector1, 1);
-    cout << fm << endl;
-    fm.insert_row(row_vector2, 2);
-    cout << fm << endl;
-    fm.insert_row(row_vector3, 1);
-    cout << fm << endl;
+    fm2.insert_row(row_vector1, 1);
+    cout << fm2 << endl;
+    fm2.insert_row(row_vector2, 2);
+    cout << fm2 << endl;
+    fm2.insert_row(row_vector3, 1);
+    cout << fm2 << endl;
 }
