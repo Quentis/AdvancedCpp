@@ -39,8 +39,12 @@
 #include<algorithm>
 #include<iostream>
 #include<utility>
+#include<string>
+#include<sstream>
 
 using namespace std;
+
+#define FLAT_MATRIX_DEBUG_SUPPORT
 
 /* Template*/
 class FlatMatrix {
@@ -96,7 +100,54 @@ public:
             this->row_dim = 0;
             this->column_dim = 0;
         }
+    }
 
+    FlatMatrix(const FlatMatrix& fm)
+    {
+        row_dim = fm.row_dim;
+        column_dim = fm.column_dim;
+        elements = fm.elements;
+    }
+
+    FlatMatrix(FlatMatrix&& fm)
+    {
+        row_dim = fm.row_dim;
+        column_dim = fm.column_dim;
+        fm.row_dim = 0;
+        fm.column_dim = 0;
+        elements = move(fm.elements);
+    }
+
+    FlatMatrix& operator=(const FlatMatrix& fm)
+    {
+        if(this != &fm)
+        {
+            row_dim = fm.row_dim;
+            column_dim = fm.column_dim;
+            elements = fm.elements;
+        }
+        return *this;
+    }
+
+    FlatMatrix& operator=(FlatMatrix&& fm)
+    {
+        if(this != &fm)
+        {
+            row_dim = fm.row_dim;
+            column_dim = fm.column_dim;
+            fm.row_dim = 0;
+            fm.column_dim = 0;
+            elements = move(fm.elements);
+        }
+        return *this;
+    }
+
+    /* Clears the elements of the matrix and sets the dimensions to zero. */
+    void clear(void)
+    {
+        row_dim = 0;
+        column_dim = 0;
+        elements.clear();
     }
 
     /* Inserts a row in the matrix at the position determined by row_idx. The row_idx in the range of [1,row_dim]
@@ -362,24 +413,39 @@ public:
         }
     }
 
+    static bool converter(const string& src, double& out)
+    {
+        stringstream str_stream(src, ios_base::in);
+        str_stream >> out;
+
+        if((str_stream.failbit || str_stream.badbit) && !str_stream.eof())
+        {
+            return false;
+        }
+        else
+        {
+            return true;
+        }
+    }
+
     friend istream& operator>>(std::istream &is, FlatMatrix &m)
     {
         enum class State {
-            READ,
-            COLUMN,
-            ROW
+            START,
+            READ
         } state;
 
         vector<double> row_vector;
         vector<vector<double>> matrix;
 
         string element_raw;
-        vector<string> row_vector_raw;
-        vector<vector<string>> matrix_raw;
+        double element;
 
+        unsigned column_dim = 0;
         bool processing_active = true;
+        bool success = true;
 
-        state = State::READ;
+        state = State::START;
 
         while(processing_active)
         {
@@ -387,42 +453,102 @@ public:
 
             switch(state)
             {
-                case State::READ:
-                    if(c == '\n')
-                    {
-                        state = State::ROW;
-                    }
-                    else if(c == ' ')
-                    {
-                        state = State::COLUMN;
-                    }
-                    else if(c != '\r')
-                    {
-                        element_raw += c;
-                    }
-                    break;
-
-                case State::COLUMN:
-                    if(c == '\n')
-                    {
-                        state = State::ROW;
-                    }
-                    else if(c == ' ')
-                    {
-
-                    }
-                    break;
-
-                case State::ROW:
-                    if(c == '\n')
-                    {
-                        processing_active = false;
-                    }
-                    else if(c == '\r')
+                case State::START:
+                    if(c == '{')
                     {
                         state = State::READ;
                     }
                     break;
+                case State::READ:
+                    if((c == ';') || (c == '}'))
+                    {
+                        if(!element_raw.empty())
+                        {
+                            if(FlatMatrix::converter(element_raw, element))
+                            {
+                                row_vector.push_back(element);
+                                element_raw.clear();
+                            }
+                            else
+                            {
+                                processing_active = false;
+                                success = false;
+                            }
+                            if((column_dim != row_vector.size()) && (column_dim != 0))
+                            {
+                                processing_active = false;
+                                success = false;
+                            }
+                            else
+                            {
+                                if(column_dim == 0)
+                                {
+                                    column_dim = row_vector.size();
+                                }
+
+                                if(c == '}')
+                                {
+                                    processing_active = false;
+                                    success = true;
+                                }
+
+                                    matrix.push_back(row_vector);
+                                    row_vector.clear();
+                            }
+                        }
+                        else
+                        {
+                            if(c == '}')
+                            {
+                                processing_active = false;
+                                success = true;
+                            }
+                            else
+                            {
+                                processing_active = false;
+                                success = false;
+                            }
+                        }
+                    }
+                    else if(c == ',')
+                    {
+                        if(!element_raw.empty())
+                        {
+                            if(FlatMatrix::converter(element_raw, element))
+                            {
+                                row_vector.push_back(element);
+                                element_raw.clear();
+                            }
+                            else
+                            {
+                                processing_active = false;
+                                success = false;
+                            }
+                        }
+                        else
+                        {
+                            processing_active = false;
+                            success = false;
+                        }
+                    }
+                    else
+                    {
+                        element_raw += c;
+                    }
+                    break;
+            }
+        }
+
+        if(success)
+        {
+            m.clear();
+            if(matrix.size() > 0)
+            {
+                int idx = matrix.size() - 1;
+                for(;idx >= 0; idx--)
+                {
+                    m.insert_row(matrix[idx], 0);
+                }
             }
         }
         return is;
@@ -430,21 +556,34 @@ public:
 
     friend ostream& operator<<(std::ostream &os, const FlatMatrix &m)
     {
+        cout << '{';
         for (unsigned i = 1; i <= m.row_dim; ++i) {
             for (unsigned j = 1; j <= m.column_dim; ++j) {
                 cout << m.elements[m.get_flat_index(i,j)];
                 if(j != m.column_dim)
                 {
-                    cout << " ";
+                    cout << ',';
                 }
                 else
                 {
-                    cout << endl;
+                    cout << ';';
                 }
             }
         }
+        cout << '}' << endl;
         return os;
     }
+
+    #ifdef FLAT_MATRIX_DEBUG_SUPPORT
+    void print_elements(void)
+    {
+        for(vector<double>::iterator vi = elements.begin(); vi != elements.end(); ++vi)
+        {
+            cout << *vi << ' ';
+        }
+        cout << endl;
+    }
+    #endif
 
 };
 
@@ -453,50 +592,67 @@ int main(int argc, char *argv[])
     FlatMatrix fm1;
     FlatMatrix fm2;
     FlatMatrix fm3;
+    FlatMatrix fm_in;
 
-    cin >> fm3;
+//    vector<double> column_vector1;
+//    column_vector1.push_back(1);
+//    column_vector1.push_back(2);
+//    column_vector1.push_back(3);
+//
+//    vector<double> column_vector2;
+//    column_vector2.push_back(4);
+//    column_vector2.push_back(5);
+//    column_vector2.push_back(6);
+//
+//    vector<double> column_vector3;
+//    column_vector3.push_back(7);
+//    column_vector3.push_back(8);
+//    column_vector3.push_back(9);
+//
+//    fm1.insert_column(column_vector1, 1);
+//    cout << fm1 << endl;
+//    fm1.insert_column(column_vector2, 2);
+//    cout << fm1 << endl;
+//    fm1.insert_column(column_vector3, 2);
+//    cout << fm1 << endl;
+//
+//    vector<double> row_vector1;
+//    row_vector1.push_back(1);
+//    row_vector1.push_back(2);
+//    row_vector1.push_back(3);
+//
+//    vector<double> row_vector2;
+//    row_vector2.push_back(4);
+//    row_vector2.push_back(5);
+//    row_vector2.push_back(6);
+//
+//    vector<double> row_vector3;
+//    row_vector3.push_back(7);
+//    row_vector3.push_back(8);
+//    row_vector3.push_back(9);
+//
+//    fm2.insert_row(row_vector1, 1);
+//    cout << fm2 << endl;
+//    fm2.insert_row(row_vector2, 2);
+//    cout << fm2 << endl;
+//    fm2.insert_row(row_vector3, 1);
+//    cout << fm2 << endl;
+//
+//    fm1 = fm2;
+//    fm1.print_elements();
+//    fm2.print_elements();
+//    fm1 = move(fm2);
+//    fm1.print_elements();
+//    fm2.print_elements();
 
-    vector<double> column_vector1;
-    column_vector1.push_back(1);
-    column_vector1.push_back(2);
-    column_vector1.push_back(3);
+    while(1)
+    {
+        cout << "Give me that stuff!" << endl;
+        cin >> fm_in;
+        cout << "Here is your staff" << endl;
+        cout << fm_in;
 
-    vector<double> column_vector2;
-    column_vector2.push_back(4);
-    column_vector2.push_back(5);
-    column_vector2.push_back(6);
-
-    vector<double> column_vector3;
-    column_vector3.push_back(7);
-    column_vector3.push_back(8);
-    column_vector3.push_back(9);
-
-    fm1.insert_column(column_vector1, 1);
-    cout << fm1 << endl;
-    fm1.insert_column(column_vector2, 2);
-    cout << fm1 << endl;
-    fm1.insert_column(column_vector3, 2);
-    cout << fm1 << endl;
-
-    vector<double> row_vector1;
-    row_vector1.push_back(1);
-    row_vector1.push_back(2);
-    row_vector1.push_back(3);
-
-    vector<double> row_vector2;
-    row_vector2.push_back(4);
-    row_vector2.push_back(5);
-    row_vector2.push_back(6);
-
-    vector<double> row_vector3;
-    row_vector3.push_back(7);
-    row_vector3.push_back(8);
-    row_vector3.push_back(9);
-
-    fm2.insert_row(row_vector1, 1);
-    cout << fm2 << endl;
-    fm2.insert_row(row_vector2, 2);
-    cout << fm2 << endl;
-    fm2.insert_row(row_vector3, 1);
-    cout << fm2 << endl;
+        cout << endl << endl;
+    }
+    cin.get();
 }
