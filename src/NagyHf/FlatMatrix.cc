@@ -417,7 +417,7 @@ public:
         if( (1 <= column_idx) && (column_idx <= column_dim) )
         {
             vector<Type> temp_vector;
-            unsigned column_flat_idx = elements.size() - column_dim + column_idx;
+            unsigned column_flat_idx = elements.size() - column_dim + column_idx - 1;
 
             for(unsigned idx = 0; idx < row_dim; idx++)
             {
@@ -795,6 +795,21 @@ bool FlatMatrix_TestCase_FillConstructor(void)
 
     return true;
 }
+
+//bool FlatMatrix_TestCase_Insert(void)
+//{
+//    FlatMatrix<int> fm_row, fm_column;
+//    vector<int> row_vector;
+//
+//    row_vector.push_back(1);
+//    row_vector.push_back(2);
+//    row_vector.push_back(3);
+//    fm_row.insert_row(row_vector, 6);
+//
+//    row_vector[1] = row_vector[0] + 3;
+//    row_vector[1] = row_vector[0] + 3;
+//    row_vector[1] = row_vector[0] + 3;
+//}
 
 typedef bool(*testcase_t)(void);
 struct testcase_info_t {
