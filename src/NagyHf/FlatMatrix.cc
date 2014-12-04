@@ -34,10 +34,10 @@
  * */
 
 /// \mainpage FlatMatrix project
-/// \ref FlatMatrix is a container which makes possible to store objects in matrix structure. The structure of the FlatMatrix is
+/// FlatMatrix is a container which makes possible to store objects in matrix structure. The structure of the FlatMatrix is
 /// flat which means the elements are stored consecutively in a dynamic array (vector). The matrix contains the rows in
 /// reverse order in a row oriented way (the elements of the row are next to each other in the array). This makes the insertion
-/// of rows at the beggining of the matrix fast.
+/// of rows at the beginning of the matrix fast.
 
 #include<vector>
 #include<iterator>
@@ -52,6 +52,7 @@ using namespace std;
 
 #define FLAT_MATRIX_DEBUG_SUPPORT
 
+/// FlatMatrix is matrix representation
 /* Template*/
 class FlatMatrix {
 private:
@@ -77,6 +78,10 @@ private:
     vector<double> elements;
 
 private:
+    /// Returns the position of the element determined by row_idx and column_idx parameters in the inner vector container.
+    /// \param row_idx determines the row index of the required element
+    /// \param column_idx determines the column index of the required element
+    /// \return the index of the required element in the vector
     unsigned get_flat_index(unsigned row_idx, unsigned column_idx) const
     {
         /* This makes possible to get the flat index of the next columns and rows after the last ones
@@ -515,6 +520,12 @@ public:
         }
     }
 
+    /// Converts the text based information from input stream into a FlatMatrix with the type of the template parameter.
+    /// The FlatMatrix textual representation uses four separator character. The '{' and '}' represents the beginning
+    /// and the end of matrix. The ',' character separates the columns while the ';' character separates the rows.
+    /// \param is determines the istream where the textual representation of the matrix is read from
+    /// \param m determines where the converted FlatMatrix is stored
+    /// \return istream in the input parameter
     friend istream& operator>>(std::istream &is, FlatMatrix &m)
     {
         enum class State {
@@ -641,6 +652,13 @@ public:
         return is;
     }
 
+    /// Converts the a FlatMatrix with the type of the template parameter into text based information which is written
+    /// into the given ostream parameter. The elements of the matrix are converted by its operator<<.
+    /// The FlatMatrix textual representation uses four separator character. The '{' and '}' represents the beginning
+    /// and the end of matrix. The ',' character separates the columns while the ';' character separates the rows.
+    /// \param os determines the ostream where the textual representation of the matrix is written to
+    /// \param m determines the FlatMatrix which shall be converted into text
+    /// \return ostream which was passed as input parameter
     friend ostream& operator<<(std::ostream &os, const FlatMatrix &m)
     {
         cout << '{';
@@ -653,7 +671,10 @@ public:
                 }
                 else
                 {
-                    cout << ';';
+                    if(i != m.row_dim)
+                    {
+                        cout << ';';
+                    }
                 }
             }
         }
@@ -662,6 +683,8 @@ public:
     }
 
     #ifdef FLAT_MATRIX_DEBUG_SUPPORT
+    /// This function is used only for debugging in order to get the elements of the inner vector container.
+    /// This function doesn't exist if FLAT_MATRIX_DEBUG_SUPPORT symbol is not defined.
     void print_elements(void)
     {
         for(vector<double>::iterator vi = elements.begin(); vi != elements.end(); ++vi)
