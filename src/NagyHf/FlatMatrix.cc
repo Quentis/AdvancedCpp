@@ -52,8 +52,8 @@ using namespace std;
 
 #define FLAT_MATRIX_DEBUG_SUPPORT
 
-/// FlatMatrix is matrix representation
-/* Template*/
+/// FlatMatrix is matrix representation which stores its elements consecutively in a dynamic array (vector).
+template<typename Type>
 class FlatMatrix {
 private:
     /// Number of rows in the matrix (it can be zero but in this case column_dim should be zero too)
@@ -75,7 +75,7 @@ private:
     /// |         |  idx0  |  idx1  |  idx2  |  idx3  |  idx4  |  idx5  |  idx6  |  idx7  |  idx8  |
     /// |:-------:|:------:|:------:|:------:|:------:|:------:|:------:|:------:|:------:|:------:|
     /// |  value  |  a31   |  a32   |  a33   |  a21   |  a22   |  a23   |  a11   |  a12   |  a13   |
-    vector<double> elements;
+    vector<Type> elements;
 
 private:
     /// Returns the position of the element determined by row_idx and column_idx parameters in the inner vector container.
@@ -107,9 +107,9 @@ public:
     /// \param row_dim determines the number of rows
     /// \param column_dim determines the number of columns
     /// \param fill_value determines the value of elements in the matrix (operator=)
-    FlatMatrix(unsigned row_dim, unsigned column_dim, double& fill_value)
+    FlatMatrix(unsigned row_dim, unsigned column_dim, const Type& fill_value)
     {
-        if( (row_dim == 0) || (column_dim == 0) )
+        if( (row_dim != 0) && (column_dim != 0) )
         {
             this->row_dim = row_dim;
             this->column_dim = column_dim;
@@ -204,7 +204,7 @@ public:
     /// \param row_vector determines the values of the new row
     /// \param row_idx determines the insertion point
     /// \return true if the insertion was successful (otherwise false)
-    bool insert_row(const vector<double>& row_vector, unsigned row_idx)
+    bool insert_row(const vector<Type>& row_vector, const unsigned row_idx)
     {
         bool success;
         unsigned row_vector_size = row_vector.size();
@@ -231,7 +231,7 @@ public:
 
             if(row_vector_size >= column_dim)
             {
-                vector<double>::iterator vi_dst;
+                typename vector<Type>::iterator vi_dst;
 
                 if(row_idx >= row_dim)
                 {
@@ -268,7 +268,7 @@ public:
     /// \param column_vector determines the values of the new column
     /// \param column_idx determines the insertion point
     /// \return true if the insertion was successful (otherwise false)
-    bool insert_column(const vector<double>& column_vector, unsigned column_idx)
+    bool insert_column(const vector<Type>& column_vector, const unsigned column_idx)
     {
         bool success;
         unsigned column_vector_size = column_vector.size();
@@ -285,7 +285,7 @@ public:
                 column_dim = 1;
                 row_dim = column_vector_size;
 
-                for(vector<double>::const_reverse_iterator vi = column_vector.rbegin(); vi != column_vector.rend();++vi)
+                for(typename vector<Type>::const_reverse_iterator vi = column_vector.rbegin(); vi != column_vector.rend();++vi)
                 {
                     elements.push_back(*vi);
                 }
@@ -314,7 +314,7 @@ public:
                     insert_idx = column_idx - 1;
                 }
 
-                vector<double> temp_vector(new_size);
+                vector<Type> temp_vector(new_size);
 
                 column_dim++;
 
@@ -344,13 +344,13 @@ public:
     }
 
     /// \return the number of rows in the matrix.
-    unsigned get_row_dim(void)
+    unsigned get_row_dim(void) const
     {
         return row_dim;
     }
 
     /// \return the number of columns in the matrix.
-    unsigned get_column_dim(void)
+    unsigned get_column_dim(void) const
     {
         return column_dim;
     }
@@ -361,7 +361,7 @@ public:
     /// \param column_idx determines the column index of the required element
     /// \param element_out is the variable where the required value is copied
     /// \return true if the passed indexes are in range of dimensions (otherwise false)
-    bool get_element_const(unsigned row_idx, unsigned column_idx, double& element_out) const
+    bool get_element_const(const unsigned row_idx, const unsigned column_idx, Type& element_out) const
     {
         if( (row_idx > row_dim) || (row_idx < 1) || (column_idx > column_dim) || (column_idx < 1))
         {
@@ -379,7 +379,7 @@ public:
     /// \param row_idx determines the row index of the required element
     /// \param column_idx determines the column index of the required element
     /// \return a reference to the required object
-    double& get_element(unsigned row_idx, unsigned column_idx)
+    Type& get_element(const unsigned row_idx, const unsigned column_idx)
     {
         return elements[get_flat_index(row_idx, column_idx)];
     }
@@ -389,11 +389,11 @@ public:
     /// \param row_idx determines the required row
     /// \param row_vector_out determines where the elements in the required row shall be copied
     /// \return true if the passed indexes are in range of dimensions (otherwise false)
-    bool get_row_const(unsigned row_idx, vector<double> row_vector_out) const
+    bool get_row_const(const unsigned row_idx, vector<Type> row_vector_out) const
     {
-        if( (1 < row_idx) && (row_idx <= row_dim) )
+        if( (1 <= row_idx) && (row_idx <= row_dim) )
         {
-            vector<double> temp_vector;
+            vector<Type> temp_vector;
             unsigned offset = get_flat_index(row_idx, 1);
 
             temp_vector.insert(temp_vector.begin(), elements.begin() + offset, elements.begin() + offset + column_dim);
@@ -411,14 +411,14 @@ public:
     /// \param column_idx determines the required column
     /// \param column_vector_out determines where the elements in the required column shall be copied
     /// \return true if the passed indexes are in range of dimensions (otherwise false)
-    bool get_column_const(unsigned column_idx, vector<double> column_vector_out) const
+    bool get_column_const(const unsigned column_idx, vector<Type> column_vector_out) const
     {
-        if( (1 < column_idx) && (column_idx <= row_dim) )
+        if( (1 <= column_idx) && (column_idx <= column_dim) )
         {
-            vector<double> temp_vector;
+            vector<Type> temp_vector;
             unsigned column_flat_idx = elements.size() - column_dim + column_idx;
 
-            for(unsigned idx = 0; idx < column_dim; idx++)
+            for(unsigned idx = 0; idx < row_dim; idx++)
             {
                 temp_vector.push_back(elements[column_flat_idx - idx * column_dim]);
             }
@@ -438,7 +438,7 @@ public:
     /// \param column_idx determines the column index of the required element
     /// \param value is the new value of the element at the given indexes
     /// \return true if the passed indexes are in range of dimensions (otherwise false)
-    bool modify_element(unsigned row_idx, unsigned column_idx, const double& value)
+    bool modify_element(const unsigned row_idx, const unsigned column_idx, const Type& value)
     {
         if( (row_idx > row_dim) || (row_idx < 1) || (column_idx > column_dim) || (column_idx < 1))
         {
@@ -457,7 +457,7 @@ public:
     /// \param row_vector determines the row which overwrites the selected (row_idx) row in the matrix
     /// \param row_idx determines the required row
     /// \return true if the passed indexes are in range of dimensions (otherwise false)
-    bool modify_row(const vector<double>& row_vector, unsigned row_idx)
+    bool modify_row(const vector<Type>& row_vector, const unsigned row_idx)
     {
         if( (1 < row_idx) && (row_idx <= row_dim) && (row_vector.size() != column_dim))
         {
@@ -480,7 +480,7 @@ public:
     /// \param column_vector determines the column which overwrites the selected (column_idx) column in the matrix
     /// \param column_idx determines the required column
     /// \return true if the passed indexes are in range of dimensions (otherwise false)
-    bool modify_column(const vector<double>& column_vector, unsigned column_idx)
+    bool modify_column(const vector<Type>& column_vector, const unsigned column_idx)
     {
         if( (1 < column_idx) && (column_idx <= row_dim) )
         {
@@ -505,7 +505,7 @@ public:
     /// \param src is the string which shall be converted
     /// \param out is a reference where the result is stored
     /// \return true if the conversion was successful. (otherwise false)
-    static bool converter(const string& src, double& out)
+    static bool converter(const string& src, Type& out)
     {
         stringstream str_stream(src, ios_base::in);
         str_stream >> out;
@@ -533,11 +533,11 @@ public:
             READ
         } state;
 
-        vector<double> row_vector;
-        vector<vector<double>> matrix;
+        vector<Type> row_vector;
+        vector<vector<Type>> matrix;
 
         string element_raw;
-        double element;
+        Type element;
 
         unsigned column_dim = 0;
         bool processing_active = true;
@@ -566,32 +566,33 @@ public:
                             {
                                 row_vector.push_back(element);
                                 element_raw.clear();
-                            }
-                            else
-                            {
-                                processing_active = false;
-                                success = false;
-                            }
-                            if((column_dim != row_vector.size()) && (column_dim != 0))
-                            {
-                                processing_active = false;
-                                success = false;
-                            }
-                            else
-                            {
-                                if(column_dim == 0)
-                                {
-                                    column_dim = row_vector.size();
-                                }
 
-                                if(c == '}')
+                                if((column_dim != row_vector.size()) && (column_dim != 0))
                                 {
                                     processing_active = false;
-                                    success = true;
+                                    success = false;
                                 }
+                                else
+                                {
+                                    if(column_dim == 0)
+                                    {
+                                        column_dim = row_vector.size();
+                                    }
 
-                                    matrix.push_back(row_vector);
-                                    row_vector.clear();
+                                    if(c == '}')
+                                    {
+                                        processing_active = false;
+                                        success = true;
+                                    }
+
+                                        matrix.push_back(row_vector);
+                                        row_vector.clear();
+                                }
+                            }
+                            else
+                            {
+                                processing_active = false;
+                                success = false;
                             }
                         }
                         else
@@ -687,7 +688,7 @@ public:
     /// This function doesn't exist if FLAT_MATRIX_DEBUG_SUPPORT symbol is not defined.
     void print_elements(void)
     {
-        for(vector<double>::iterator vi = elements.begin(); vi != elements.end(); ++vi)
+        for(typename vector<Type>::iterator vi = elements.begin(); vi != elements.end(); ++vi)
         {
             cout << *vi << ' ';
         }
@@ -697,72 +698,134 @@ public:
 
 };
 
+/*============================================ TESTS ============================================*/
+bool FlatMatrix_TestCase_DefaultConstructor(void)
+{
+    bool test_result = false;
+
+    FlatMatrix<int> fm;
+
+    if( (fm.get_row_dim() == 0) && (fm.get_column_dim() == 0))
+    {
+        test_result = true;
+    }
+
+    return test_result;
+}
+
+bool FlatMatrix_TestCase_FillConstructor(void)
+{
+    FlatMatrix<int> fm_row_dim_zero(0,1,122);
+    FlatMatrix<int> fm_column_dim_zero(1,0,122);
+    FlatMatrix<int> fm(2,3,122);
+
+    if( (fm_row_dim_zero.get_row_dim() != 0) || (fm_row_dim_zero.get_column_dim() != 0))
+    {
+        return false;
+    }
+
+    if( (fm_column_dim_zero.get_row_dim() != 0) || (fm_column_dim_zero.get_column_dim() != 0))
+    {
+        return false;
+    }
+
+    if( (fm.get_row_dim() != 2) || (fm.get_column_dim() != 3) )
+    {
+        return false;
+    }
+    else
+    {
+        int row1_checker[] = {122, 122, 122};
+        int row2_checker[] = {122, 122, 122};
+        int column1_checker[] = {122, 122};
+        int column2_checker[] = {122, 122};
+        int column3_checker[] = {122, 122};
+
+        vector<int> row1;
+        vector<int> row2;
+        vector<int> column1;
+        vector<int> column2;
+        vector<int> column3;
+
+        if(!fm.get_row_const(1, row1))
+        {
+            return false;
+        }
+
+        if(!fm.get_row_const(2, row2))
+        {
+            return false;
+        }
+
+        if(!fm.get_column_const(1, column1))
+        {
+            return false;
+        }
+
+        if(!fm.get_column_const(2, column2))
+        {
+            return false;
+        }
+
+        if(!fm.get_column_const(3, column3))
+        {
+            return false;
+        }
+
+        for (int idx = 0; idx < 3; ++idx)
+        {
+            if( (row1_checker[idx] != row1[idx]) ||
+                (row2_checker[idx] != row2[idx]) )
+            {
+                return false;
+            }
+        }
+
+        for (int idx = 0; idx < 2; ++idx)
+        {
+            if( (column1_checker[idx] != column1[idx]) ||
+                (column2_checker[idx] != column2[idx]) ||
+                (column3_checker[idx] != column3[idx]) )
+            {
+                return false;
+            }
+        }
+    }
+
+    return true;
+}
+
+typedef bool(*testcase_t)(void);
+struct testcase_info_t {
+    testcase_t testcase_callback;
+    string testcase_name;
+};
+
 int main(int argc, char *argv[])
 {
-    FlatMatrix fm1;
-    FlatMatrix fm2;
-    FlatMatrix fm3;
-    FlatMatrix fm_in;
+    vector<testcase_info_t> testsuite;
+    testsuite.push_back(testcase_info_t{FlatMatrix_TestCase_DefaultConstructor,
+                                       "FlatMatrix_TestCase_DefaultConstructor"});
+    testsuite.push_back(testcase_info_t{FlatMatrix_TestCase_FillConstructor,
+                                       "FlatMatrix_TestCase_FillConstructor"});
 
-//    vector<double> column_vector1;
-//    column_vector1.push_back(1);
-//    column_vector1.push_back(2);
-//    column_vector1.push_back(3);
-//
-//    vector<double> column_vector2;
-//    column_vector2.push_back(4);
-//    column_vector2.push_back(5);
-//    column_vector2.push_back(6);
-//
-//    vector<double> column_vector3;
-//    column_vector3.push_back(7);
-//    column_vector3.push_back(8);
-//    column_vector3.push_back(9);
-//
-//    fm1.insert_column(column_vector1, 1);
-//    cout << fm1 << endl;
-//    fm1.insert_column(column_vector2, 2);
-//    cout << fm1 << endl;
-//    fm1.insert_column(column_vector3, 2);
-//    cout << fm1 << endl;
-//
-//    vector<double> row_vector1;
-//    row_vector1.push_back(1);
-//    row_vector1.push_back(2);
-//    row_vector1.push_back(3);
-//
-//    vector<double> row_vector2;
-//    row_vector2.push_back(4);
-//    row_vector2.push_back(5);
-//    row_vector2.push_back(6);
-//
-//    vector<double> row_vector3;
-//    row_vector3.push_back(7);
-//    row_vector3.push_back(8);
-//    row_vector3.push_back(9);
-//
-//    fm2.insert_row(row_vector1, 1);
-//    cout << fm2 << endl;
-//    fm2.insert_row(row_vector2, 2);
-//    cout << fm2 << endl;
-//    fm2.insert_row(row_vector3, 1);
-//    cout << fm2 << endl;
-//
-//    fm1 = fm2;
-//    fm1.print_elements();
-//    fm2.print_elements();
-//    fm1 = move(fm2);
-//    fm1.print_elements();
-//    fm2.print_elements();
+    int testsuite_size = testsuite.size();
+    int testsuite_tc_success_count = 0; ;
 
-    while(1)
-    {
-        cout << "Give me that stuff!" << endl;
-        cin >> fm_in;
-        cout << "Here is your staff" << endl;
-        cout << fm_in;
-
-        cout << endl << endl;
+    cout << "FlatMatrix test suite:" << endl;
+    for (int idx = 0; idx < testsuite_size; ++idx) {
+        cout << testsuite[idx].testcase_name << " --> ";
+        if(testsuite[idx].testcase_callback())
+        {
+            cout << "pass" << endl;
+            ++testsuite_tc_success_count;
+        }
+        else
+        {
+            cout << "fail" << endl;
+        }
     }
+    cout << "Summary: " << testsuite_tc_success_count << "\\" << testsuite_size << endl;
+
     cin.get();
 }
