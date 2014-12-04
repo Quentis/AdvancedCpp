@@ -389,7 +389,7 @@ public:
     /// \param row_idx determines the required row
     /// \param row_vector_out determines where the elements in the required row shall be copied
     /// \return true if the passed indexes are in range of dimensions (otherwise false)
-    bool get_row_const(const unsigned row_idx, vector<Type> row_vector_out) const
+    bool get_row_const(const unsigned row_idx, vector<Type>& row_vector_out) const
     {
         if( (1 <= row_idx) && (row_idx <= row_dim) )
         {
@@ -397,6 +397,7 @@ public:
             unsigned offset = get_flat_index(row_idx, 1);
 
             temp_vector.insert(temp_vector.begin(), elements.begin() + offset, elements.begin() + offset + column_dim);
+
             row_vector_out = move(temp_vector);
             return true;
         }
@@ -411,7 +412,7 @@ public:
     /// \param column_idx determines the required column
     /// \param column_vector_out determines where the elements in the required column shall be copied
     /// \return true if the passed indexes are in range of dimensions (otherwise false)
-    bool get_column_const(const unsigned column_idx, vector<Type> column_vector_out) const
+    bool get_column_const(const unsigned column_idx, vector<Type>& column_vector_out) const
     {
         if( (1 <= column_idx) && (column_idx <= column_dim) )
         {
