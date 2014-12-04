@@ -90,7 +90,7 @@ private:
     }
 
 public:
-    /** Creates an empty matrix (rows and columns can be added later)*/
+    /// Creates an empty matrix (rows and columns can be added later)
     FlatMatrix()
     {
         row_dim = 0;
@@ -446,9 +446,12 @@ public:
         }
     }
 
-    /* Overwrites the row at row_idx (valid: [1,row_dim]) with values in the given vector.
-     * If row_idx is out of range then false is returned. If the vector is shorter then the column_dim then false is returned.
-     * If the vector is longer then column_dim then only the first column_dim elements are added to the matrix.*/
+    /// Overwrites the row at row_idx (valid: [1,row_dim]) with values in the given vector.
+    /// If row_idx is out of range then false is returned. If the vector is shorter then the column_dim then false is returned.
+    /// If the vector is longer then column_dim then only the first column_dim elements are added to the matrix.
+    /// \param row_vector determines the row which overwrites the selected (row_idx) row in the matrix
+    /// \param row_idx determines the required row
+    /// \return true if the passed indexes are in range of dimensions (otherwise false)
     bool modify_row(const vector<double>& row_vector, unsigned row_idx)
     {
         if( (1 < row_idx) && (row_idx <= row_dim) && (row_vector.size() != column_dim))
@@ -466,9 +469,12 @@ public:
         }
     }
 
-    /* Overwrites the column at column_idx (valid: [1,column_dim]) with values in the given vector.
-     * If column_idx is out of range then false is returned. If the vector is shorter then the row_dim then false is returned.
-     * If the vector is longer then row_dim then only the first row_dim elements are added to the matrix.*/
+    /// Overwrites the column at column_idx (valid: [1,column_dim]) with values in the given vector.
+    /// If column_idx is out of range then false is returned. If the vector is shorter then the row_dim then false is returned.
+    /// If the vector is longer then row_dim then only the first row_dim elements are added to the matrix.
+    /// \param column_vector determines the column which overwrites the selected (column_idx) column in the matrix
+    /// \param column_idx determines the required column
+    /// \return true if the passed indexes are in range of dimensions (otherwise false)
     bool modify_column(const vector<double>& column_vector, unsigned column_idx)
     {
         if( (1 < column_idx) && (column_idx <= row_dim) )
@@ -488,6 +494,12 @@ public:
         }
     }
 
+    /// This auxiliary function converts a string in the src parameter into the specified type in the template parameter
+    /// by calling its operator>> which stores the result in the out parameter. If the conversion is successful then
+    /// true is returned otherwise false.
+    /// \param src is the string which shall be converted
+    /// \param out is a reference where the result is stored
+    /// \return true if the conversion was successful. (otherwise false)
     static bool converter(const string& src, double& out)
     {
         stringstream str_stream(src, ios_base::in);
