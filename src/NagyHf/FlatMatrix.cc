@@ -33,6 +33,12 @@
  *     -7.*.*.1 A mûveletek elsõsorban a mátrix elejét érintik
  * */
 
+/// \mainpage FlatMatrix project
+/// \ref FlatMatrix is a container which makes possible to store objects in matrix structure. The structure of the FlatMatrix is
+/// flat which means the elements are stored consecutively in a dynamic array (vector). The matrix contains the rows in
+/// reverse order in a row oriented way (the elements of the row are next to each other in the array). This makes the insertion
+/// of rows at the beggining of the matrix fast.
+
 #include<vector>
 #include<iterator>
 #include<stdexcept>
@@ -49,16 +55,25 @@ using namespace std;
 /* Template*/
 class FlatMatrix {
 private:
-    unsigned row_dim;    /// Number of rows in the matrix (it can be zero but in this case column_dim should be zero too)
-    unsigned column_dim; /// Number of columns in the matrix (it can be zero but in this case row_dim should be zero too)
+    /// Number of rows in the matrix (it can be zero but in this case column_dim should be zero too)
+    unsigned row_dim;
 
-    /** The elements of the matrix are stored in a vector. The vector is row organized which means the row members are
-     *  next to each other (consecutive indexes) so rows can be added and read faster then the columns. The rows are
-     *  stored in reverse order because specification states that the operations affects the first rows of the matrix
-     *  (the insertion to the vector container is fast if the elements are added at the end of the container).
-     *  [a11 a12 a13]
-     *  [a21 a22 a23] --> [a31 a32 a33 a21 a22 a23 a11 a12 a13]
-     *  [a31 a32 a33] */
+    /// Number of columns in the matrix (it can be zero but in this case row_dim should be zero too)
+    unsigned column_dim;
+
+    /// The elements of the matrix are stored in a vector. The vector is row organized which means the row members are
+    /// next to each other (consecutive indexes) so rows can be added and read faster then the columns. The rows are
+    /// stored in reverse order because specification states that the operations affects the first rows of the matrix
+    /// (the insertion to the vector container is fast if the elements are added at the end of the container).
+    /// |         |  row1  |  row2  |  row3  |
+    /// |:-------:|:------:|:------:|:------:|
+    /// | column1 |  a11   |  a21   |  a31   |
+    /// | column2 |  a21   |  a22   |  a32   |
+    /// | column3 |  a23   |  a23   |  a33   |
+    /// This matrix is stored in the following way:
+    /// |         |  idx0  |  idx1  |  idx2  |  idx3  |  idx4  |  idx5  |  idx6  |  idx7  |  idx8  |
+    /// |:-------:|:------:|:------:|:------:|:------:|:------:|:------:|:------:|:------:|:------:|
+    /// |  value  |  a31   |  a32   |  a33   |  a21   |  a22   |  a23   |  a11   |  a12   |  a13   |
     vector<double> elements;
 
 private:
@@ -82,8 +97,11 @@ public:
         column_dim = 0;
     }
 
-    /* Creates a matrix with row_dim and column_dim dimensions and initializes it with fill_value.
-     * If any dimension is zero then it creates an empty matrix. */
+    /// Creates a matrix with row_dim and column_dim dimensions and initializes it with fill_value.
+    /// If any dimension is zero then it creates an empty matrix.
+    /// \param row_dim determines the number of rows
+    /// \param column_dim determines the number of columns
+    /// \param fill_value determines the value of elements in the matrix (operator=)
     FlatMatrix(unsigned row_dim, unsigned column_dim, double& fill_value)
     {
         if( (row_dim == 0) || (column_dim == 0) )
@@ -102,6 +120,10 @@ public:
         }
     }
 
+    /// Copy constructor. It copies the values of the other matrix in accordance with its dimensions. The dimensions
+    /// are overwritten also. After the copy the two matrix have the same dimensions and elements however both matrix
+    /// has its own copy. (deep copy)
+    /// \param fm other FlatMatrix instance
     FlatMatrix(const FlatMatrix& fm)
     {
         row_dim = fm.row_dim;
@@ -109,6 +131,9 @@ public:
         elements = fm.elements;
     }
 
+    /// Move constructor. It moves the values of the other matrix in accordance with its dimensions. The dimensions
+    /// are overwritten also. After the move the other matrix becomes empty (no elements and the dimensions are zero).
+    /// \param fm other FlatMatrix instance
     FlatMatrix(FlatMatrix&& fm)
     {
         row_dim = fm.row_dim;
@@ -116,8 +141,16 @@ public:
         fm.row_dim = 0;
         fm.column_dim = 0;
         elements = move(fm.elements);
+        /* According to the specification of vector after move assignment the source remains in valid but undefined state.
+         * The clear makes sure that no element remains in the source matrix. */
+        fm.clear();
     }
 
+    /// Copy assignment. It copies the values of the other matrix in accordance with its dimensions. The dimensions
+    /// are overwritten also. After the copy the two matrix have the same dimensions and elements however both matrix
+    /// has its own copy. (deep copy)
+    /// \param fm other FlatMatrix instance
+    /// \return the overwritten FlatMatrix object
     FlatMatrix& operator=(const FlatMatrix& fm)
     {
         if(this != &fm)
@@ -129,6 +162,10 @@ public:
         return *this;
     }
 
+    /// Move assignment. It moves the values of the other matrix in accordance with its dimensions. The dimensions
+    /// are overwritten also. After the move the other matrix becomes empty (no elements and the dimensions are zero).
+    /// \param fm other FlatMatrix instance
+    /// \return the overwritten FlatMatrix object
     FlatMatrix& operator=(FlatMatrix&& fm)
     {
         if(this != &fm)
@@ -138,11 +175,14 @@ public:
             fm.row_dim = 0;
             fm.column_dim = 0;
             elements = move(fm.elements);
+            /* According to the specification of vector after move assignment the source remains in valid but undefined state.
+             * The clear makes sure that no element remains in the source matrix. */
+            fm.clear();
         }
         return *this;
     }
 
-    /* Clears the elements of the matrix and sets the dimensions to zero. */
+    /// Clears the elements of the matrix and sets the dimensions to zero.
     void clear(void)
     {
         row_dim = 0;
@@ -150,12 +190,15 @@ public:
         elements.clear();
     }
 
-    /* Inserts a row in the matrix at the position determined by row_idx. The row_idx in the range of [1,row_dim]
-     * determines an existing row so in this case the row is inserted at the place of this row and the existing is
-     * shifted in the direction of increasing indexes. If the row_idx is in the range of (row_dim,infinity) then it
-     * is inserted at the end of the matrix. If the row_idx is zero then the row is inserted as the first row of the
-     * matrix. (same behavior as row_idx = 1) If the vector is shorter then the column_dim then false is returned.
-     * If the passed vector is longer then column_dim then only the first column_dim elements are added to the matrix.*/
+    /// Inserts a row in the matrix at the position determined by row_idx. The row_idx in the range of [1,row_dim]
+    /// determines an existing row so in this case the row is inserted at the place of this row and the existing is
+    /// shifted in the direction of increasing indexes. If the row_idx is in the range of (row_dim,infinity) then it
+    /// is inserted at the end of the matrix. If the row_idx is zero then the row is inserted as the first row of the
+    /// matrix. (same behavior as row_idx = 1) If the vector is shorter then the column_dim then false is returned.
+    /// If the passed vector is longer then column_dim then only the first column_dim elements are added to the matrix.
+    /// \param row_vector determines the values of the new row
+    /// \param row_idx determines the insertion point
+    /// \return true if the insertion was successful (otherwise false)
     bool insert_row(const vector<double>& row_vector, unsigned row_idx)
     {
         bool success;
@@ -211,12 +254,15 @@ public:
         return success;
     }
 
-    /* Inserts a column in the matrix at the position determined by column_idx. The column_idx in the range of [1,column_dim]
-     * determines an existing column so in this case the column is inserted at the place of this column and the existing is
-     * shifted in the direction of increasing indexes. If the column_idx is in the range of (column_dim,infinity) then it
-     * is inserted at the end of the matrix. If the column_idx is zero then the column is inserted as the first column of the
-     * matrix. (same behavior as column_idx = 1) If the vector is shorter then the row_dim then false is returned.
-     * If the passed vector is longer then row_dim then only the first row_dim elements are added to the matrix.*/
+    /// Inserts a column in the matrix at the position determined by column_idx. The column_idx in the range of [1,column_dim]
+    /// determines an existing column so in this case the column is inserted at the place of this column and the existing is
+    /// shifted in the direction of increasing indexes. If the column_idx is in the range of (column_dim,infinity) then it
+    /// is inserted at the end of the matrix. If the column_idx is zero then the column is inserted as the first column of the
+    /// matrix. (same behavior as column_idx = 1) If the vector is shorter then the row_dim then false is returned.
+    /// If the passed vector is longer then row_dim then only the first row_dim elements are added to the matrix.
+    /// \param column_vector determines the values of the new column
+    /// \param column_idx determines the insertion point
+    /// \return true if the insertion was successful (otherwise false)
     bool insert_column(const vector<double>& column_vector, unsigned column_idx)
     {
         bool success;
@@ -292,8 +338,24 @@ public:
         return success;
     }
 
-    /* Copies the value of the element at row_idx (valid: [1,row_dim]) and column_idx (valid: [1,column_dim]) into
-     * the passed reference. If the indexes are out of range then false is returned. */
+    /// \return the number of rows in the matrix.
+    unsigned get_row_dim(void)
+    {
+        return row_dim;
+    }
+
+    /// \return the number of columns in the matrix.
+    unsigned get_column_dim(void)
+    {
+        return column_dim;
+    }
+
+    /// Copies the value of the element at row_idx (valid: [1,row_dim]) and column_idx (valid: [1,column_dim]) into
+    /// the passed reference. If the indexes are out of range then false is returned.
+    /// \param row_idx determines the row index of the required element
+    /// \param column_idx determines the column index of the required element
+    /// \param element_out is the variable where the required value is copied
+    /// \return true if the passed indexes are in range of dimensions (otherwise false)
     bool get_element_const(unsigned row_idx, unsigned column_idx, double& element_out) const
     {
         if( (row_idx > row_dim) || (row_idx < 1) || (column_idx > column_dim) || (column_idx < 1))
@@ -307,15 +369,21 @@ public:
         }
     }
 
-    /* Returns a reference to the value of the element at row_idx (valid: [1,row_dim]) and column_idx (valid: [1,column_dim]).
-     * If the indexes are out of range then false is returned. */
+    /// Returns a reference to the value of the element at row_idx (valid: [1,row_dim]) and column_idx (valid: [1,column_dim]).
+    /// If the indexes are out of range then runtime_error is thrown.
+    /// \param row_idx determines the row index of the required element
+    /// \param column_idx determines the column index of the required element
+    /// \return a reference to the required object
     double& get_element(unsigned row_idx, unsigned column_idx)
     {
         return elements[get_flat_index(row_idx, column_idx)];
     }
 
-    /* Copies the elements of the row at row_idx (valid: [1,row_dim]) into the passed vector reference. (operator=)
-     * If the indexes are out of range then false is returned. */
+    /// Copies the elements of the row at row_idx (valid: [1,row_dim]) into the passed vector reference. (operator=)
+    /// If the indexes are out of range then false is returned.
+    /// \param row_idx determines the required row
+    /// \param row_vector_out determines where the elements in the required row shall be copied
+    /// \return true if the passed indexes are in range of dimensions (otherwise false)
     bool get_row_const(unsigned row_idx, vector<double> row_vector_out) const
     {
         if( (1 < row_idx) && (row_idx <= row_dim) )
@@ -333,8 +401,11 @@ public:
         }
     }
 
-    /* Copies the elements of the column at column_idx (valid: [1,column_dim]) into the passed vector reference. (operator=)
-     * If the indexes are out of range then false is returned. */
+    /// Copies the elements of the column at column_idx (valid: [1,column_dim]) into the passed vector reference. (operator=)
+    /// If the indexes are out of range then false is returned.
+    /// \param column_idx determines the required column
+    /// \param column_vector_out determines where the elements in the required column shall be copied
+    /// \return true if the passed indexes are in range of dimensions (otherwise false)
     bool get_column_const(unsigned column_idx, vector<double> column_vector_out) const
     {
         if( (1 < column_idx) && (column_idx <= row_dim) )
@@ -356,8 +427,12 @@ public:
         }
     }
 
-    /* Overwrites an element at row_idx (valid: [1,row_dim]) and column_idx (valid: [1,column_dim]) with value.
-     * If the indexes are out of range then a runtime_error is thrown. */
+    /// Overwrites an element at row_idx (valid: [1,row_dim]) and column_idx (valid: [1,column_dim]) with value.
+    /// If the indexes are out of range then a runtime_error is thrown.
+    /// \param row_idx determines the row index of the required element
+    /// \param column_idx determines the column index of the required element
+    /// \param value is the new value of the element at the given indexes
+    /// \return true if the passed indexes are in range of dimensions (otherwise false)
     bool modify_element(unsigned row_idx, unsigned column_idx, const double& value)
     {
         if( (row_idx > row_dim) || (row_idx < 1) || (column_idx > column_dim) || (column_idx < 1))
