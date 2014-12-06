@@ -233,7 +233,7 @@ public:
             {
                 typename vector<Type>::iterator vi_dst;
 
-                if(row_idx >= row_dim)
+                if(row_idx > row_dim)
                 {
                     vi_dst = elements.begin();
                 }
@@ -243,7 +243,7 @@ public:
                 }
                 else
                 {
-                    unsigned row_start_flat_idx = get_flat_index(row_idx, 1);
+                    unsigned row_start_flat_idx = (row_dim + 1 - row_idx) * column_dim;
                     vi_dst = elements.begin() + row_start_flat_idx;
                 }
 
@@ -369,7 +369,7 @@ public:
         }
         else
         {
-            elements[get_flat_index(row_idx, column_idx)];
+            element_out = elements[get_flat_index(row_idx, column_idx)];
             return true;
         }
     }
@@ -439,7 +439,7 @@ public:
     /// \param column_idx determines the column index of the required element
     /// \param value is the new value of the element at the given indexes
     /// \return true if the passed indexes are in range of dimensions (otherwise false)
-    bool modify_element(const unsigned row_idx, const unsigned column_idx, const Type& value)
+    bool set_element(const unsigned row_idx, const unsigned column_idx, const Type& value)
     {
         if( (row_idx > row_dim) || (row_idx < 1) || (column_idx > column_dim) || (column_idx < 1))
         {
@@ -458,9 +458,9 @@ public:
     /// \param row_vector determines the row which overwrites the selected (row_idx) row in the matrix
     /// \param row_idx determines the required row
     /// \return true if the passed indexes are in range of dimensions (otherwise false)
-    bool modify_row(const vector<Type>& row_vector, const unsigned row_idx)
+    bool set_row(const vector<Type>& row_vector, const unsigned row_idx)
     {
-        if( (1 < row_idx) && (row_idx <= row_dim) && (row_vector.size() != column_dim))
+        if( (1 <= row_idx) && (row_idx <= row_dim) && (row_vector.size() == column_dim))
         {
             unsigned base = get_flat_index(row_idx, 1);
             for(unsigned offset = 0; offset < column_dim; offset++)
@@ -481,9 +481,9 @@ public:
     /// \param column_vector determines the column which overwrites the selected (column_idx) column in the matrix
     /// \param column_idx determines the required column
     /// \return true if the passed indexes are in range of dimensions (otherwise false)
-    bool modify_column(const vector<Type>& column_vector, const unsigned column_idx)
+    bool set_column(const vector<Type>& column_vector, const unsigned column_idx)
     {
-        if( (1 < column_idx) && (column_idx <= row_dim) )
+        if( (1 <= column_idx) && (column_idx <= row_dim) && (column_vector.size() == row_dim))
         {
             unsigned column_flat_idx = elements.size() - column_dim + column_idx;
 
@@ -796,20 +796,282 @@ bool FlatMatrix_TestCase_FillConstructor(void)
     return true;
 }
 
-//bool FlatMatrix_TestCase_Insert(void)
-//{
-//    FlatMatrix<int> fm_row, fm_column;
-//    vector<int> row_vector;
-//
-//    row_vector.push_back(1);
-//    row_vector.push_back(2);
-//    row_vector.push_back(3);
-//    fm_row.insert_row(row_vector, 6);
-//
-//    row_vector[1] = row_vector[0] + 3;
-//    row_vector[1] = row_vector[0] + 3;
-//    row_vector[1] = row_vector[0] + 3;
-//}
+bool FlatMatrix_TestCase_RowInsert(void)
+{
+    FlatMatrix<int> fm_row;
+    vector<int> row_vector, row_vector_out;
+
+    row_vector.push_back(1);
+    row_vector.push_back(2);
+    row_vector.push_back(3);
+
+    if(!fm_row.insert_row(row_vector, 1))
+    {
+        return false;
+    }
+
+    row_vector[0] = row_vector[0] + 3;
+    row_vector[1] = row_vector[1] + 3;
+    row_vector[2] = row_vector[2] + 3;
+    if(!fm_row.insert_row(row_vector, 1))
+    {
+        return false;
+    }
+
+    row_vector[0] = row_vector[0] + 3;
+    row_vector[1] = row_vector[1] + 3;
+    row_vector[2] = row_vector[2] + 3;
+    if(!fm_row.insert_row(row_vector, 2))
+    {
+        return false;
+    }
+
+    if(!fm_row.get_row_const(1, row_vector_out))
+    {
+        return false;
+    }
+
+    if( (row_vector_out[0] != 4) &&
+        (row_vector_out[1] != 5) &&
+        (row_vector_out[2] != 6)
+    ){
+        return false;
+    }
+
+    if(!fm_row.get_row_const(2, row_vector_out))
+    {
+        return false;
+    }
+
+    if( (row_vector_out[0] != 7) &&
+        (row_vector_out[1] != 8) &&
+        (row_vector_out[2] != 9)
+    ){
+        return false;
+    }
+
+    if(!fm_row.get_row_const(3, row_vector_out))
+    {
+        return false;
+    }
+
+    if( (row_vector_out[0] != 1) &&
+        (row_vector_out[1] != 2) &&
+        (row_vector_out[2] != 3)
+    ){
+        return false;
+    }
+
+    return true;
+}
+
+bool FlatMatrix_TestCase_ColumnInsert(void)
+{
+    FlatMatrix<int> fm_column;
+    vector<int> column_vector, column_vector_out;
+
+    column_vector.push_back(1);
+    column_vector.push_back(2);
+    column_vector.push_back(3);
+
+    if(!fm_column.insert_column(column_vector, 1))
+    {
+        return false;
+    }
+
+    column_vector[0] = column_vector[0] + 3;
+    column_vector[1] = column_vector[1] + 3;
+    column_vector[2] = column_vector[2] + 3;
+    if(!fm_column.insert_column(column_vector, 1))
+    {
+        return false;
+    }
+
+    column_vector[0] = column_vector[0] + 3;
+    column_vector[1] = column_vector[1] + 3;
+    column_vector[2] = column_vector[2] + 3;
+    if(!fm_column.insert_column(column_vector, 2))
+    {
+        return false;
+    }
+
+    if(!fm_column.get_column_const(1, column_vector_out))
+    {
+        return false;
+    }
+
+    if( (column_vector_out[0] != 4) &&
+        (column_vector_out[1] != 5) &&
+        (column_vector_out[2] != 6)
+    ){
+        return false;
+    }
+
+    if(!fm_column.get_column_const(2, column_vector_out))
+    {
+        return false;
+    }
+
+    if( (column_vector_out[0] != 7) &&
+        (column_vector_out[1] != 8) &&
+        (column_vector_out[2] != 9)
+    ){
+        return false;
+    }
+
+    if(!fm_column.get_column_const(3, column_vector_out))
+    {
+        return false;
+    }
+
+    if( (column_vector_out[0] != 1) &&
+        (column_vector_out[1] != 2) &&
+        (column_vector_out[2] != 3)
+    ){
+        return false;
+    }
+
+    return true;
+}
+
+bool FlatMatrix_TestCase_MixInsert(void)
+{
+    FlatMatrix<int> fm;
+    vector<int> row_vector1;
+    vector<int> row_vector2;
+    vector<int> column_vector1;
+    vector<int> column_vector2;
+
+    int row1_checker_array[] = {2, 5, 1};
+    int row2_checker_array[] = {3, 6, 4};
+
+    row_vector1.push_back(1);
+
+    column_vector1.push_back(2);
+
+    row_vector2.push_back(3);
+    row_vector2.push_back(4);
+
+    column_vector2.push_back(5);
+    column_vector2.push_back(6);
+
+    if(!fm.insert_row(row_vector1, 1))
+    {
+        return false;
+    }
+
+    if(!fm.insert_column(column_vector1, 0))
+    {
+        return false;
+    }
+
+    if(!fm.insert_row(row_vector2, 7))
+    {
+        return false;
+    }
+
+    if(!fm.insert_column(column_vector2, 2))
+    {
+        return false;
+    }
+
+    int value;
+
+    for (int idx = 0; idx < 3; ++idx) {
+        if(!fm.get_element_const(1,idx + 1,value))
+        {
+            return false;
+        }
+        else if(value != row1_checker_array[idx])
+        {
+            return false;
+        }
+
+        if(!fm.get_element_const(2,idx + 1,value))
+        {
+            return false;
+        }
+        else if(value != row2_checker_array[idx])
+        {
+            return false;
+        }
+
+    }
+
+    return true;
+}
+
+bool FlatMatrix_TestCase_MixSet(void)
+{
+    FlatMatrix<int> fm(2,3,0);
+    vector<int> row;
+    vector<int> column;
+    int fm_checker1_row1[] = {2,  5, 3};
+    int fm_checker1_row2[] = {0,  0, 0};
+    int fm_checker2_row1[] = {2, 12, 5};
+    int fm_checker2_row2[] = {0,  5, 0};
+
+    row.push_back(2);
+    row.push_back(5);
+    row.push_back(3);
+
+    column.push_back(12);
+    column.push_back(5);
+
+    if(!fm.set_row(row, 1))
+    {
+        return false;
+    }
+
+    try
+    {
+        for(int idx = 0; idx < 3; ++idx)
+        {
+            int value = fm.get_element(1, idx + 1);
+            if(value != fm_checker1_row1[idx])
+            {
+                return false;
+            }
+
+            value = fm.get_element(2, idx + 1);
+            if(value != fm_checker1_row2[idx])
+            {
+                return false;
+            }
+        }
+    }
+    catch(...)
+    {
+        return false;
+    }
+
+    if(!fm.set_row(column, 2))
+    {
+        return false;
+    }
+
+    try
+    {
+        for(int idx = 0; idx < 3; ++idx)
+        {
+            if(fm.get_element(1, idx) != fm_checker2_row1[idx + 1])
+            {
+                return false;
+            }
+
+            if(fm.get_element(2, idx) != fm_checker2_row2[idx + 1])
+            {
+                return false;
+            }
+        }
+    }
+    catch(...)
+    {
+        return false;
+    }
+
+    return true;
+}
 
 typedef bool(*testcase_t)(void);
 struct testcase_info_t {
@@ -824,6 +1086,14 @@ int main(int argc, char *argv[])
                                        "FlatMatrix_TestCase_DefaultConstructor"});
     testsuite.push_back(testcase_info_t{FlatMatrix_TestCase_FillConstructor,
                                        "FlatMatrix_TestCase_FillConstructor"});
+    testsuite.push_back(testcase_info_t{FlatMatrix_TestCase_RowInsert,
+                                       "FlatMatrix_TestCase_RowInsert"});
+    testsuite.push_back(testcase_info_t{FlatMatrix_TestCase_ColumnInsert,
+                                       "FlatMatrix_TestCase_ColumnInsert"});
+    testsuite.push_back(testcase_info_t{FlatMatrix_TestCase_MixInsert,
+                                       "FlatMatrix_TestCase_MixInsert"});
+    testsuite.push_back(testcase_info_t{FlatMatrix_TestCase_MixSet,
+                                       "FlatMatrix_TestCase_MixSet"});
 
     int testsuite_size = testsuite.size();
     int testsuite_tc_success_count = 0; ;
