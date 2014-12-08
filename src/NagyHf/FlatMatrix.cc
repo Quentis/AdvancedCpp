@@ -38,6 +38,7 @@
 /// flat which means the elements are stored consecutively in a dynamic array (vector). The matrix contains the rows in
 /// reverse order in a row oriented way (the elements of the row are next to each other in the array). This makes the insertion
 /// of rows at the beginning of the matrix fast.
+/// The interface of FlatMatrix template parameter type should guarantee the copy, move constructor and operator=.
 
 #include<vector>
 #include<iterator>
@@ -1281,6 +1282,33 @@ bool FlatMatrix_TestCase_Serialize(void)
 
     return true;
 }
+
+// This Pure class is used to check what interface is necessary for FlatMatrix
+//class Pure {
+//    int value;
+//public:
+//    Pure(int value):value(value){}
+//    Pure() = delete;
+//    Pure(const Pure& other) = delete;
+//    Pure& operator=(const Pure& other) = delete;
+//    Pure& operator=(Pure&& other) = delete;
+//};
+//
+//bool FlatMatrix_TestCase_RequiredInterfaces(void)
+//{
+//    FlatMatrix<Pure> fm1(2,2,Pure(42));
+//    FlatMatrix<Pure> fm2;
+//
+//    vector<Pure> v2;
+//    v2.push_back(Pure(1));
+//    v2.push_back(Pure(2));
+//    v2.push_back(Pure(3));
+//
+//    fm2.insert_row(v2, 1);
+//
+//    return true;
+//}
+
 
 typedef bool(*testcase_t)(void);
 struct testcase_info_t {
