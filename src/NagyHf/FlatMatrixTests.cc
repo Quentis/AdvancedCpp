@@ -647,7 +647,7 @@ struct testcase_info_t {
     }
 };
 
-int main(int argc, char *argv[])
+/*int main(int argc, char *argv[])
 {
     testcase_info_t testsuite[] = {
             testcase_info_t{FlatMatrix_TestCase_DefaultConstructor,
@@ -690,4 +690,4 @@ int main(int argc, char *argv[])
     }
     cout << "Summary: " << testsuite_tc_success_count << "\\" << testsuite_size << endl;
 
-}
+}*/
