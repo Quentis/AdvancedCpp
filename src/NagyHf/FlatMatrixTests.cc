@@ -1,6 +1,8 @@
 #include "FlatMatrix.h"
 #include<iostream>
 #include<iomanip>
+#include<cfloat>
+#include<cmath>
 
 /*============================================ TESTS ============================================*/
 bool FlatMatrix_TestCase_Int_DefaultConstructor(void)
@@ -653,6 +655,83 @@ bool FlatMatrix_TestCase_Int_Serialize(void)
     return true;
 }
 
+bool FlatMatrix_TestCase_Dbl_Serialize(void)
+{
+    FlatMatrix<double> fm1_out;
+    FlatMatrix<double> fm1_in;
+    FlatMatrix<double> fm2_out;
+    FlatMatrix<double> fm2_in;
+    vector<double> fm1_row;
+    vector<double> fm2_column;
+
+    double fm1_checker[] = {1e-12,2e4,312.48};
+    double fm2_checker[] = {0.0,-634.5413,15.321e3};
+
+    stringstream str_stream;
+
+    fm1_row.push_back(1e-12);
+    fm1_row.push_back(2e4);
+    fm1_row.push_back(312.48);
+    fm2_column.push_back(0.0);
+    fm2_column.push_back(-634.5413);
+    fm2_column.push_back(15.321e3);
+
+    if(!fm1_out.insert_row(fm1_row,1))
+    {
+        return false;
+    }
+
+    if(!fm2_out.insert_column(fm2_column,1))
+    {
+        return false;
+    }
+
+    str_stream.precision(30);
+    str_stream << fm1_out << fm2_out;
+
+    if( (fm1_in.get_row_dim()    != 0) ||
+        (fm1_in.get_column_dim() != 0) ||
+        (fm2_in.get_row_dim()    != 0) ||
+        (fm2_in.get_column_dim() != 0) )
+    {
+        return false;
+    }
+
+    str_stream >> fm1_in;
+    str_stream >> fm2_in;
+
+    if( (fm1_in.get_row_dim()    != 1) ||
+        (fm1_in.get_column_dim() != 3) ||
+        (fm2_in.get_row_dim()    != 3) ||
+        (fm2_in.get_column_dim() != 1) )
+    {
+        return false;
+    }
+
+    double value;
+    for (int idx = 0; idx < 3; ++idx) {
+        if(!fm1_in.get_element(1, idx + 1, value))
+        {
+            return false;
+        }
+        else if( abs(value - fm1_checker[idx]) > DBL_EPSILON )
+        {
+            return false;
+        }
+
+        if(!fm2_in.get_element(idx + 1, 1, value))
+        {
+            return false;
+        }
+        else if( abs(value - fm2_checker[idx]) > DBL_EPSILON )
+        {
+            return false;
+        }
+    }
+
+    return true;
+}
+
 bool FlatMatrix_TestCase_Str_Serialize(void)
 {
     FlatMatrix<string> fm1;
@@ -813,6 +892,8 @@ int main(int argc, char *argv[])
                            "FlatMatrix_TestCase_Int_OperatorAssignAndMove"},
             testcase_info_t{FlatMatrix_TestCase_Int_Serialize,
                            "FlatMatrix_TestCase_Int_Serialize"},
+            testcase_info_t{FlatMatrix_TestCase_Dbl_Serialize,
+                           "FlatMatrix_TestCase_Dbl_Serialize"},
             testcase_info_t{FlatMatrix_TestCase_Str_Serialize,
                            "FlatMatrix_TestCase_Str_Serialize"}
     };

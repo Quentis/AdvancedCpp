@@ -100,6 +100,67 @@ private:
         return (row_dim - row_idx) * column_dim + (column_idx - 1);
     }
 
+    /// This auxiliary function converts a string in the src parameter into the specified type in the template parameter
+    /// by calling its operator>> which stores the result in the out parameter. If the conversion is successful then
+    /// true is returned otherwise false.
+    /// \param src is the string which shall be converted
+    /// \param out is a reference where the result is stored
+    /// \return true if the conversion was successful. (otherwise false)
+    static bool input_converter(const string& src, Type& out)
+    {
+        stringstream str_stream(src, ios_base::in);
+        str_stream >> out;
+
+        if((str_stream.failbit || str_stream.badbit) && !str_stream.eof())
+        {
+            return false;
+        }
+        else
+        {
+            return true;
+        }
+    }
+
+    /// This auxiliary function converts an element (with template parameter type) referenced by the src parameter into
+    /// string by calling its operator<< which is stored in out parameter.
+    /// \param src is a constant reference to the element which is converted into a string
+    /// \param out is a reference to a string where the result of the conversion is stored
+    /// \param os is a reference to the output stream which determines the properties of the serialization
+    static void output_converter(const Type& src, string& out, ostream& os)
+    {
+        stringstream str_stream(ios_base::in | ios_base::out);
+        str_stream.copyfmt(os);
+
+        str_stream << src;
+        out.clear();
+
+        char c;
+        while( (c = str_stream.get()) != EOF)
+        {
+             switch(c)
+             {
+                 case ',':
+                     out.append("\\,");
+                     break;
+                 case ';':
+                     out.append("\\;");
+                     break;
+                 case '}':
+                     out.append("\\}");
+                     break;
+                 case '{':
+                     out.append("\\{");
+                     break;
+                 case '\\':
+                     out.append("\\\\");
+                     break;
+                 default:
+                     out.push_back(c);
+                     break;
+             }
+        }
+    }
+
 public:
     /// Creates an empty matrix (rows and columns can be added later)
     FlatMatrix()
@@ -496,27 +557,6 @@ public:
         }
     }
 
-    /// This auxiliary function converts a string in the src parameter into the specified type in the template parameter
-    /// by calling its operator>> which stores the result in the out parameter. If the conversion is successful then
-    /// true is returned otherwise false.
-    /// \param src is the string which shall be converted
-    /// \param out is a reference where the result is stored
-    /// \return true if the conversion was successful. (otherwise false)
-    static bool input_converter(const string& src, Type& out)
-    {
-        stringstream str_stream(src, ios_base::in);
-        str_stream >> out;
-
-        if((str_stream.failbit || str_stream.badbit) && !str_stream.eof())
-        {
-            return false;
-        }
-        else
-        {
-            return true;
-        }
-    }
-
     /// Converts the text based information from input stream into a FlatMatrix with the type of the template parameter.
     /// The FlatMatrix textual representation uses four separator character. The '{' and '}' represents the beginning
     /// and the end of matrix. The ',' character separates the columns while the ';' character separates the rows.
@@ -669,43 +709,6 @@ public:
         return is;
     }
 
-    /// This auxiliary function converts an element (with template parameter type) referenced by the src parameter into
-    /// string by calling its operator<< which is stored in out parameter.
-    /// \param src is a constant reference to the element which is converted into a string
-    /// \param out is a reference to a string where the result of the conversion is stored
-    static void output_converter(const Type& src, string& out)
-    {
-        stringstream str_stream(ios_base::in | ios_base::out);
-        str_stream << src;
-        out.clear();
-
-        char c;
-        while( (c = str_stream.get()) != EOF)
-        {
-             switch(c)
-             {
-                 case ',':
-                     out.append("\\,");
-                     break;
-                 case ';':
-                     out.append("\\;");
-                     break;
-                 case '}':
-                     out.append("\\}");
-                     break;
-                 case '{':
-                     out.append("\\{");
-                     break;
-                 case '\\':
-                     out.append("\\\\");
-                     break;
-                 default:
-                     out.push_back(c);
-                     break;
-             }
-        }
-    }
-
     /// Converts the a FlatMatrix with the type of the template parameter into text based information which is written
     /// into the given ostream parameter. The elements of the matrix are converted by its operator<<.
     /// The FlatMatrix textual representation uses four separator character. The '{' and '}' represents the beginning
@@ -722,7 +725,7 @@ public:
         for (unsigned i = 1; i <= m.row_dim; ++i) {
             for (unsigned j = 1; j <= m.column_dim; ++j) {
 
-                output_converter(m.elements[m.get_flat_index(i,j)], element_str);
+                output_converter(m.elements[m.get_flat_index(i,j)], element_str, os);
                 os << element_str;
 
                 if(j != m.column_dim)
