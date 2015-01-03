@@ -90,10 +90,12 @@ private:
     {
         /* This makes possible to get the flat index of the next columns and rows after the last ones
          * in order to help the inserter functions */
+        #ifdef FLAT_MATRIX_DEBUG_SUPPORT
         if((row_idx > row_dim + 1) || (column_idx > column_dim + 1) || (row_idx == 0) || (column_idx == 0))
         {
-            throw runtime_error("Invalid dimensions.");
+            throw runtime_error("Invalid dimensions."); /* If the implementation is correct this exception is never thrown*/
         }
+        #endif
 
         return (row_dim - row_idx) * column_dim + (column_idx - 1);
     }
@@ -365,7 +367,7 @@ public:
     /// \param column_idx determines the column index of the required element
     /// \param element_out is the variable where the required value is copied
     /// \return true if the passed indexes are in range of dimensions (otherwise false)
-    bool get_element_const(const unsigned row_idx, const unsigned column_idx, Type& element_out) const
+    bool get_element(const unsigned row_idx, const unsigned column_idx, Type& element_out) const
     {
         if( (row_idx > row_dim) || (row_idx < 1) || (column_idx > column_dim) || (column_idx < 1))
         {
@@ -378,22 +380,12 @@ public:
         }
     }
 
-    /// Returns a reference to the value of the element at row_idx (valid: [1,row_dim]) and column_idx (valid: [1,column_dim]).
-    /// If the indexes are out of range then runtime_error is thrown.
-    /// \param row_idx determines the row index of the required element
-    /// \param column_idx determines the column index of the required element
-    /// \return a reference to the required object
-    Type& get_element(const unsigned row_idx, const unsigned column_idx)
-    {
-        return elements[get_flat_index(row_idx, column_idx)];
-    }
-
     /// Copies the elements of the row at row_idx (valid: [1,row_dim]) into the passed vector reference. (operator=)
     /// If the indexes are out of range then false is returned.
     /// \param row_idx determines the required row
     /// \param row_vector_out determines where the elements in the required row shall be copied
     /// \return true if the passed indexes are in range of dimensions (otherwise false)
-    bool get_row_const(const unsigned row_idx, vector<Type>& row_vector_out) const
+    bool get_row(const unsigned row_idx, vector<Type>& row_vector_out) const
     {
         if( (1 <= row_idx) && (row_idx <= row_dim) )
         {
@@ -416,7 +408,7 @@ public:
     /// \param column_idx determines the required column
     /// \param column_vector_out determines where the elements in the required column shall be copied
     /// \return true if the passed indexes are in range of dimensions (otherwise false)
-    bool get_column_const(const unsigned column_idx, vector<Type>& column_vector_out) const
+    bool get_column(const unsigned column_idx, vector<Type>& column_vector_out) const
     {
         if( (1 <= column_idx) && (column_idx <= column_dim) )
         {
@@ -510,7 +502,7 @@ public:
     /// \param src is the string which shall be converted
     /// \param out is a reference where the result is stored
     /// \return true if the conversion was successful. (otherwise false)
-    static bool converter(const string& src, Type& out)
+    static bool input_converter(const string& src, Type& out)
     {
         stringstream str_stream(src, ios_base::in);
         str_stream >> out;
@@ -535,7 +527,8 @@ public:
     {
         enum class State {
             START,
-            READ
+            READ,
+            ESCAPE
         } state;
 
         vector<Type> row_vector;
@@ -562,12 +555,17 @@ public:
                         state = State::READ;
                     }
                     break;
+
                 case State::READ:
-                    if((c == ';') || (c == '}'))
+                    if(c == '\\')
+                    {
+                        state = State::ESCAPE;
+                    }
+                    else if((c == ';') || (c == '}'))
                     {
                         if(!element_raw.empty())
                         {
-                            if(FlatMatrix::converter(element_raw, element))
+                            if(FlatMatrix::input_converter(element_raw, element))
                             {
                                 row_vector.push_back(element);
                                 element_raw.clear();
@@ -618,7 +616,7 @@ public:
                     {
                         if(!element_raw.empty())
                         {
-                            if(FlatMatrix::converter(element_raw, element))
+                            if(FlatMatrix::input_converter(element_raw, element))
                             {
                                 row_vector.push_back(element);
                                 element_raw.clear();
@@ -640,6 +638,19 @@ public:
                         element_raw += c;
                     }
                     break;
+
+                case State::ESCAPE:
+                    if( (c == ',') || (c == ';') || (c == '}') || (c == '{') || (c == '\\') )
+                    {
+                        element_raw += c;
+                        state = State::READ;
+                    }
+                    else
+                    {
+                        processing_active = false;
+                        success = false;
+                    }
+                    break;
             }
         }
 
@@ -658,19 +669,62 @@ public:
         return is;
     }
 
+    /// This auxiliary function converts an element (with template parameter type) referenced by the src parameter into
+    /// string by calling its operator<< which is stored in out parameter.
+    /// \param src is a constant reference to the element which is converted into a string
+    /// \param out is a reference to a string where the result of the conversion is stored
+    static void output_converter(const Type& src, string& out)
+    {
+        stringstream str_stream(ios_base::in | ios_base::out);
+        str_stream << src;
+        out.clear();
+
+        char c;
+        while( (c = str_stream.get()) != EOF)
+        {
+             switch(c)
+             {
+                 case ',':
+                     out.append("\\,");
+                     break;
+                 case ';':
+                     out.append("\\;");
+                     break;
+                 case '}':
+                     out.append("\\}");
+                     break;
+                 case '{':
+                     out.append("\\{");
+                     break;
+                 case '\\':
+                     out.append("\\\\");
+                     break;
+                 default:
+                     out.push_back(c);
+                     break;
+             }
+        }
+    }
+
     /// Converts the a FlatMatrix with the type of the template parameter into text based information which is written
     /// into the given ostream parameter. The elements of the matrix are converted by its operator<<.
     /// The FlatMatrix textual representation uses four separator character. The '{' and '}' represents the beginning
     /// and the end of matrix. The ',' character separates the columns while the ';' character separates the rows.
+    /// If the elements of the FlatMatrix are string then the characters with special meaning are escaped by '\'.
     /// \param os determines the ostream where the textual representation of the matrix is written to
     /// \param m determines the FlatMatrix which shall be converted into text
     /// \return ostream which was passed as input parameter
     friend ostream& operator<<(std::ostream &os, const FlatMatrix &m)
     {
+        string element_str;
+
         os << '{';
         for (unsigned i = 1; i <= m.row_dim; ++i) {
             for (unsigned j = 1; j <= m.column_dim; ++j) {
-                os << m.elements[m.get_flat_index(i,j)];
+
+                output_converter(m.elements[m.get_flat_index(i,j)], element_str);
+                os << element_str;
+
                 if(j != m.column_dim)
                 {
                     os << ',';
@@ -682,6 +736,7 @@ public:
                         os << ';';
                     }
                 }
+
             }
         }
         os << '}' << endl;

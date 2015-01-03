@@ -1,7 +1,9 @@
 #include "FlatMatrix.h"
+#include<iostream>
+#include<iomanip>
 
 /*============================================ TESTS ============================================*/
-bool FlatMatrix_TestCase_DefaultConstructor(void)
+bool FlatMatrix_TestCase_Int_DefaultConstructor(void)
 {
     bool test_result = false;
 
@@ -15,7 +17,7 @@ bool FlatMatrix_TestCase_DefaultConstructor(void)
     return test_result;
 }
 
-bool FlatMatrix_TestCase_FillConstructor(void)
+bool FlatMatrix_TestCase_Int_FillConstructor(void)
 {
     FlatMatrix<int> fm_row_dim_zero(0,1,122);
     FlatMatrix<int> fm_column_dim_zero(1,0,122);
@@ -49,27 +51,27 @@ bool FlatMatrix_TestCase_FillConstructor(void)
         vector<int> column2;
         vector<int> column3;
 
-        if(!fm.get_row_const(1, row1))
+        if(!fm.get_row(1, row1))
         {
             return false;
         }
 
-        if(!fm.get_row_const(2, row2))
+        if(!fm.get_row(2, row2))
         {
             return false;
         }
 
-        if(!fm.get_column_const(1, column1))
+        if(!fm.get_column(1, column1))
         {
             return false;
         }
 
-        if(!fm.get_column_const(2, column2))
+        if(!fm.get_column(2, column2))
         {
             return false;
         }
 
-        if(!fm.get_column_const(3, column3))
+        if(!fm.get_column(3, column3))
         {
             return false;
         }
@@ -97,7 +99,7 @@ bool FlatMatrix_TestCase_FillConstructor(void)
     return true;
 }
 
-bool FlatMatrix_TestCase_RowInsert(void)
+bool FlatMatrix_TestCase_Int_RowInsert(void)
 {
     FlatMatrix<int> fm_row;
     vector<int> row_vector, row_vector_out;
@@ -127,7 +129,7 @@ bool FlatMatrix_TestCase_RowInsert(void)
         return false;
     }
 
-    if(!fm_row.get_row_const(1, row_vector_out))
+    if(!fm_row.get_row(1, row_vector_out))
     {
         return false;
     }
@@ -139,7 +141,7 @@ bool FlatMatrix_TestCase_RowInsert(void)
         return false;
     }
 
-    if(!fm_row.get_row_const(2, row_vector_out))
+    if(!fm_row.get_row(2, row_vector_out))
     {
         return false;
     }
@@ -151,7 +153,7 @@ bool FlatMatrix_TestCase_RowInsert(void)
         return false;
     }
 
-    if(!fm_row.get_row_const(3, row_vector_out))
+    if(!fm_row.get_row(3, row_vector_out))
     {
         return false;
     }
@@ -166,7 +168,7 @@ bool FlatMatrix_TestCase_RowInsert(void)
     return true;
 }
 
-bool FlatMatrix_TestCase_ColumnInsert(void)
+bool FlatMatrix_TestCase_Int_ColumnInsert(void)
 {
     FlatMatrix<int> fm_column;
     vector<int> column_vector, column_vector_out;
@@ -196,7 +198,7 @@ bool FlatMatrix_TestCase_ColumnInsert(void)
         return false;
     }
 
-    if(!fm_column.get_column_const(1, column_vector_out))
+    if(!fm_column.get_column(1, column_vector_out))
     {
         return false;
     }
@@ -208,7 +210,7 @@ bool FlatMatrix_TestCase_ColumnInsert(void)
         return false;
     }
 
-    if(!fm_column.get_column_const(2, column_vector_out))
+    if(!fm_column.get_column(2, column_vector_out))
     {
         return false;
     }
@@ -220,7 +222,7 @@ bool FlatMatrix_TestCase_ColumnInsert(void)
         return false;
     }
 
-    if(!fm_column.get_column_const(3, column_vector_out))
+    if(!fm_column.get_column(3, column_vector_out))
     {
         return false;
     }
@@ -235,7 +237,7 @@ bool FlatMatrix_TestCase_ColumnInsert(void)
     return true;
 }
 
-bool FlatMatrix_TestCase_MixInsert(void)
+bool FlatMatrix_TestCase_Int_MixInsert(void)
 {
     FlatMatrix<int> fm;
     vector<int> row_vector1;
@@ -279,7 +281,7 @@ bool FlatMatrix_TestCase_MixInsert(void)
     int value;
 
     for (int idx = 0; idx < 3; ++idx) {
-        if(!fm.get_element_const(1,idx + 1,value))
+        if(!fm.get_element(1,idx + 1,value))
         {
             return false;
         }
@@ -288,7 +290,7 @@ bool FlatMatrix_TestCase_MixInsert(void)
             return false;
         }
 
-        if(!fm.get_element_const(2,idx + 1,value))
+        if(!fm.get_element(2,idx + 1,value))
         {
             return false;
         }
@@ -301,7 +303,73 @@ bool FlatMatrix_TestCase_MixInsert(void)
     return true;
 }
 
-bool FlatMatrix_TestCase_MixSet(void)
+bool FlatMatrix_TestCase_Dbl_MixInsert(void)
+{
+    FlatMatrix<double> fm;
+    vector<double> row_vector1;
+    vector<double> row_vector2;
+    vector<double> column_vector1;
+    vector<double> column_vector2;
+
+    double row1_checker_array[] = {2.0, 5.0, 1.0};
+    double row2_checker_array[] = {3.0, 6.0, 4.0};
+
+    row_vector1.push_back(1.0);
+
+    column_vector1.push_back(2.0);
+
+    row_vector2.push_back(3.0);
+    row_vector2.push_back(4.0);
+
+    column_vector2.push_back(5.0);
+    column_vector2.push_back(6.0);
+
+    if(!fm.insert_row(row_vector1, 1))
+    {
+        return false;
+    }
+
+    if(!fm.insert_column(column_vector1, 0))
+    {
+        return false;
+    }
+
+    if(!fm.insert_row(row_vector2, 7))
+    {
+        return false;
+    }
+
+    if(!fm.insert_column(column_vector2, 2))
+    {
+        return false;
+    }
+
+    double value;
+
+    for (int idx = 0; idx < 3; ++idx) {
+        if(!fm.get_element(1,idx + 1,value))
+        {
+            return false;
+        }
+        else if(value != row1_checker_array[idx])
+        {
+            return false;
+        }
+
+        if(!fm.get_element(2,idx + 1,value))
+        {
+            return false;
+        }
+        else if(value != row2_checker_array[idx])
+        {
+            return false;
+        }
+    }
+
+    return true;
+}
+
+bool FlatMatrix_TestCase_Int_MixSet(void)
 {
     FlatMatrix<int> fm(2,4,0);
     vector<int> row;
@@ -328,13 +396,14 @@ bool FlatMatrix_TestCase_MixSet(void)
     {
         for(int idx = 0; idx < 4; ++idx)
         {
-            int value = fm.get_element(1, idx + 1);
+            int value;
+            fm.get_element(1, idx + 1, value);
             if(value != fm_checker1_row1[idx])
             {
                 return false;
             }
 
-            value = fm.get_element(2, idx + 1);
+            fm.get_element(2, idx + 1, value);
             if(value != fm_checker1_row2[idx])
             {
                 return false;
@@ -355,13 +424,14 @@ bool FlatMatrix_TestCase_MixSet(void)
     {
         for(int idx = 0; idx < 4; ++idx)
         {
-            int value = fm.get_element(1, idx + 1);
+            int value;
+            fm.get_element(1, idx + 1, value);
             if(value != fm_checker2_row1[idx])
             {
                 return false;
             }
 
-            value = fm.get_element(2, idx + 1);
+            fm.get_element(2, idx + 1, value);
             if(value != fm_checker2_row2[idx])
             {
                 return false;
@@ -376,7 +446,7 @@ bool FlatMatrix_TestCase_MixSet(void)
     return true;
 }
 
-bool FlatMatrix_TestCase_CopyConstructor(void)
+bool FlatMatrix_TestCase_Int_CopyConstructor(void)
 {
     FlatMatrix<int> fm1(3,3,1);
     FlatMatrix<int> fm2(fm1);
@@ -388,7 +458,7 @@ bool FlatMatrix_TestCase_CopyConstructor(void)
 
     int value;
 
-    if(!fm1.get_element_const(2,2,value))
+    if(!fm1.get_element(2,2,value))
     {
         return false;
     }
@@ -398,7 +468,7 @@ bool FlatMatrix_TestCase_CopyConstructor(void)
         return false;
     }
 
-    if(!fm2.get_element_const(2,2,value))
+    if(!fm2.get_element(2,2,value))
     {
         return false;
     }
@@ -410,7 +480,7 @@ bool FlatMatrix_TestCase_CopyConstructor(void)
     return true;
 }
 
-bool FlatMatrix_TestCase_MoveConstructor(void)
+bool FlatMatrix_TestCase_Int_MoveConstructor(void)
 {
     FlatMatrix<int> fm1(3,3,1);
     FlatMatrix<int> fm2(move(fm1));
@@ -423,7 +493,7 @@ bool FlatMatrix_TestCase_MoveConstructor(void)
         return false;
     }
 
-    if(!fm2.get_element_const(2,2,value))
+    if(!fm2.get_element(2,2,value))
     {
         return false;
     }
@@ -435,7 +505,7 @@ bool FlatMatrix_TestCase_MoveConstructor(void)
     return true;
 }
 
-bool FlatMatrix_TestCase_OperatorAssignAndMove(void)
+bool FlatMatrix_TestCase_Int_OperatorAssignAndMove(void)
 {
     FlatMatrix<int> fm1(2, 3, 15);
     FlatMatrix<int> fm2;
@@ -450,7 +520,7 @@ bool FlatMatrix_TestCase_OperatorAssignAndMove(void)
     }
 
     int value;
-    if(!fm2.get_element_const(1,1,value))
+    if(!fm2.get_element(1,1,value))
     {
         return false;
     }
@@ -462,7 +532,7 @@ bool FlatMatrix_TestCase_OperatorAssignAndMove(void)
         }
     }
 
-    if(!fm2.get_element_const(2,3,value))
+    if(!fm2.get_element(2,3,value))
     {
         return false;
     }
@@ -487,7 +557,7 @@ bool FlatMatrix_TestCase_OperatorAssignAndMove(void)
         return false;
     }
 
-    if(!fm3.get_element_const(2,1,value))
+    if(!fm3.get_element(2,1,value))
     {
         return false;
     }
@@ -499,7 +569,7 @@ bool FlatMatrix_TestCase_OperatorAssignAndMove(void)
         }
     }
 
-    if(!fm3.get_element_const(2,2,value))
+    if(!fm3.get_element(2,2,value))
     {
         return false;
     }
@@ -514,7 +584,7 @@ bool FlatMatrix_TestCase_OperatorAssignAndMove(void)
     return true;
 }
 
-bool FlatMatrix_TestCase_Serialize(void)
+bool FlatMatrix_TestCase_Int_Serialize(void)
 {
     FlatMatrix<int> fm1;
     FlatMatrix<int> fm2;
@@ -561,7 +631,7 @@ bool FlatMatrix_TestCase_Serialize(void)
 
     int value;
     for (int idx = 0; idx < 3; ++idx) {
-        if(!fm2.get_element_const(1,idx + 1,value))
+        if(!fm2.get_element(1,idx + 1,value))
         {
             return false;
         }
@@ -570,7 +640,7 @@ bool FlatMatrix_TestCase_Serialize(void)
             return false;
         }
 
-        if(!fm2.get_element_const(2,idx + 1,value))
+        if(!fm2.get_element(2,idx + 1,value))
         {
             return false;
         }
@@ -582,6 +652,77 @@ bool FlatMatrix_TestCase_Serialize(void)
 
     return true;
 }
+
+bool FlatMatrix_TestCase_Str_Serialize(void)
+{
+    FlatMatrix<string> fm1;
+    FlatMatrix<string> fm2;
+    vector<string> row1;
+    vector<string> row2;
+
+    string fm2_checker_row1[] = {"fm{1,1}","fm{1,2}","fm{1,3}"};
+    string fm2_checker_row2[] = {"fm{2;1}","fm{2;2}","fm{2;3}"};
+
+    stringstream str_stream;
+
+    row1.push_back("fm{1,1}");
+    row1.push_back("fm{1,2}");
+    row1.push_back("fm{1,3}");
+    row2.push_back("fm{2;1}");
+    row2.push_back("fm{2;2}");
+    row2.push_back("fm{2;3}");
+
+    if(!fm1.insert_row(row1,1))
+    {
+        return false;
+    }
+
+    if(!fm1.insert_row(row2,2))
+    {
+        return false;
+    }
+
+    str_stream << fm1;
+
+    if( (fm2.get_row_dim()    != 0) ||
+        (fm2.get_column_dim() != 0) )
+    {
+        return false;
+    }
+
+    str_stream >> fm2;
+
+    if( (fm2.get_row_dim()    != 2) ||
+        (fm2.get_column_dim() != 3) )
+    {
+        return false;
+    }
+
+    string value;
+    for (int idx = 0; idx < 3; ++idx) {
+        if(!fm2.get_element(1,idx + 1,value))
+        {
+            return false;
+        }
+        else if(value != fm2_checker_row1[idx])
+        {
+            return false;
+        }
+
+        if(!fm2.get_element(2,idx + 1,value))
+        {
+            return false;
+        }
+        else if(value != fm2_checker_row2[idx])
+        {
+            return false;
+        }
+    }
+
+    return true;
+}
+
+
 
 // This Pure class is used to check what interface is necessary for FlatMatrix
 //class Pure {
@@ -647,29 +788,33 @@ struct testcase_info_t {
     }
 };
 
-/*int main(int argc, char *argv[])
+int main(int argc, char *argv[])
 {
     testcase_info_t testsuite[] = {
-            testcase_info_t{FlatMatrix_TestCase_DefaultConstructor,
-                           "FlatMatrix_TestCase_DefaultConstructor"},
-            testcase_info_t{FlatMatrix_TestCase_FillConstructor,
-                           "FlatMatrix_TestCase_FillConstructor"},
-            testcase_info_t{FlatMatrix_TestCase_RowInsert,
-                           "FlatMatrix_TestCase_RowInsert"},
-            testcase_info_t{FlatMatrix_TestCase_ColumnInsert,
-                           "FlatMatrix_TestCase_ColumnInsert"},
-            testcase_info_t{FlatMatrix_TestCase_MixInsert,
-                           "FlatMatrix_TestCase_MixInsert"},
-            testcase_info_t{FlatMatrix_TestCase_MixSet,
-                           "FlatMatrix_TestCase_MixSet"},
-            testcase_info_t{FlatMatrix_TestCase_CopyConstructor,
-                           "FlatMatrix_TestCase_CopyConstructor"},
-            testcase_info_t{FlatMatrix_TestCase_MoveConstructor,
-                           "FlatMatrix_TestCase_MoveConstructor"},
-            testcase_info_t{FlatMatrix_TestCase_OperatorAssignAndMove,
-                           "FlatMatrix_TestCase_OperatorAssignAndMove"},
-            testcase_info_t{FlatMatrix_TestCase_Serialize,
-                           "FlatMatrix_TestCase_Serialize"}
+            testcase_info_t{FlatMatrix_TestCase_Int_DefaultConstructor,
+                           "FlatMatrix_TestCase_Int_DefaultConstructor"},
+            testcase_info_t{FlatMatrix_TestCase_Int_FillConstructor,
+                           "FlatMatrix_TestCase_Int_FillConstructor"},
+            testcase_info_t{FlatMatrix_TestCase_Int_RowInsert,
+                           "FlatMatrix_TestCase_Int_RowInsert"},
+            testcase_info_t{FlatMatrix_TestCase_Int_ColumnInsert,
+                           "FlatMatrix_TestCase_Int_ColumnInsert"},
+            testcase_info_t{FlatMatrix_TestCase_Int_MixInsert,
+                           "FlatMatrix_TestCase_Int_MixInsert"},
+            testcase_info_t{FlatMatrix_TestCase_Dbl_MixInsert,
+                           "FlatMatrix_TestCase_Dbl_MixInsert"},
+            testcase_info_t{FlatMatrix_TestCase_Int_MixSet,
+                           "FlatMatrix_TestCase_Int_MixSet"},
+            testcase_info_t{FlatMatrix_TestCase_Int_CopyConstructor,
+                           "FlatMatrix_TestCase_Int_CopyConstructor"},
+            testcase_info_t{FlatMatrix_TestCase_Int_MoveConstructor,
+                           "FlatMatrix_TestCase_Int_MoveConstructor"},
+            testcase_info_t{FlatMatrix_TestCase_Int_OperatorAssignAndMove,
+                           "FlatMatrix_TestCase_Int_OperatorAssignAndMove"},
+            testcase_info_t{FlatMatrix_TestCase_Int_Serialize,
+                           "FlatMatrix_TestCase_Int_Serialize"},
+            testcase_info_t{FlatMatrix_TestCase_Str_Serialize,
+                           "FlatMatrix_TestCase_Str_Serialize"}
     };
 
     int testsuite_size = sizeof(testsuite) / sizeof(testsuite[0]);
@@ -677,7 +822,7 @@ struct testcase_info_t {
 
     cout << "FlatMatrix test suite:" << endl;
     for (int idx = 0; idx < testsuite_size; ++idx) {
-        cout << testsuite[idx].testcase_name << " --> ";
+        cout << setw(45) << left << testsuite[idx].testcase_name << " --> ";
         if(testsuite[idx].call())
         {
             cout << "pass" << endl;
@@ -690,4 +835,4 @@ struct testcase_info_t {
     }
     cout << "Summary: " << testsuite_tc_success_count << "\\" << testsuite_size << endl;
 
-}*/
+}
