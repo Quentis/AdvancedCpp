@@ -1,39 +1,39 @@
 #ifndef FLATMATRIX_H_
 #define FLATMATRIX_H_
 
-/* Követelmények
+/* Kï¿½vetelmï¿½nyek
  * -------------------------------------------------------------------------------------------------------------------
- * A szöveges feladatspecifikáció alapján el kell készíteni a konténer tervét. A tervnek ki kell térnie az alábbiakra:
- *     -interfészek specifikációja - bemeneti és kimeneti formátummal
- *     -belsõ adatstruktúra
- *     -megkötések: a sablonban használt típusoknak milyen intefészekkel kell rendelkezniük (pl. bool operator<())
- * A megtervezett sablont implementálnikell.
- *     -Vigyázzunk arra, hogy a specifikált interfészek mind elérhetõek legyenek, ugyanakkor ne legyen olyan interfész,
- *      ami a specifikációban nem szerepelt, fõleg ha nem is úgy mûködik, ahogy az tõle elvárt lenne.
- *      (Ez tipikus probléma olyan esetben, ha netalán szabványos konténerbõl (public) származtatnánk a sajátunkat)
- *     -Tapasztalat, hogy sablont könnyebb fejleszteni, ha elõbb konkrét típusokkal dolgozunk, s csak akkor
- *      sablonosítjuk a konténert és a függvényeket, ha az a konkrét típusunkkal megfelelõen mûködik.
- * Az implementált konténert tesztelnikell.
- *     -Célszerû kipróbálni a konténert olyan "dummy" osztályokkal, melyeknek semmilyen operátoruk sincs, se default
- *      konstruktoruk. Ilyenkor a fordító hibaüzeneteket ad, és ezek alapján ellenõrizhetjük, hogy a konkrét tárolandó
- *      típusoknak milyen interfészekkel kell rendelkezniük. Hátha valamit figyelmetlenségbõl nem specifikáltunk.
- *     -Az értékelés egyik szempontja a hatékonyság, skálázhatóság, tehát hogy nagy mennyiségû adat esetén sem mûködik
- *      indokolatlanul lassan a konténer.
- * A forrást -- célszerûen az implementálással páruzamosan -- dokumentálni kell doxygenstílusban.
- *     -Minden tagváltozóhoz legyen megjegyzés fûzve.
- *     -A tagfüggvényeknek legyen dokumentálva az összes bemeneti paramétere és a visszatérési értéke is.
+ * A szï¿½veges feladatspecifikï¿½ciï¿½ alapjï¿½n el kell kï¿½szï¿½teni a kontï¿½ner tervï¿½t. A tervnek ki kell tï¿½rnie az alï¿½bbiakra:
+ *     -interfï¿½szek specifikï¿½ciï¿½ja - bemeneti ï¿½s kimeneti formï¿½tummal
+ *     -belsï¿½ adatstruktï¿½ra
+ *     -megkï¿½tï¿½sek: a sablonban hasznï¿½lt tï¿½pusoknak milyen intefï¿½szekkel kell rendelkezniï¿½k (pl. bool operator<())
+ * A megtervezett sablont implementï¿½lnikell.
+ *     -Vigyï¿½zzunk arra, hogy a specifikï¿½lt interfï¿½szek mind elï¿½rhetï¿½ek legyenek, ugyanakkor ne legyen olyan interfï¿½sz,
+ *      ami a specifikï¿½ciï¿½ban nem szerepelt, fï¿½leg ha nem is ï¿½gy mï¿½kï¿½dik, ahogy az tï¿½le elvï¿½rt lenne.
+ *      (Ez tipikus problï¿½ma olyan esetben, ha netalï¿½n szabvï¿½nyos kontï¿½nerbï¿½l (public) szï¿½rmaztatnï¿½nk a sajï¿½tunkat)
+ *     -Tapasztalat, hogy sablont kï¿½nnyebb fejleszteni, ha elï¿½bb konkrï¿½t tï¿½pusokkal dolgozunk, s csak akkor
+ *      sablonosï¿½tjuk a kontï¿½nert ï¿½s a fï¿½ggvï¿½nyeket, ha az a konkrï¿½t tï¿½pusunkkal megfelelï¿½en mï¿½kï¿½dik.
+ * Az implementï¿½lt kontï¿½nert tesztelnikell.
+ *     -Cï¿½lszerï¿½ kiprï¿½bï¿½lni a kontï¿½nert olyan "dummy" osztï¿½lyokkal, melyeknek semmilyen operï¿½toruk sincs, se default
+ *      konstruktoruk. Ilyenkor a fordï¿½tï¿½ hibaï¿½zeneteket ad, ï¿½s ezek alapjï¿½n ellenï¿½rizhetjï¿½k, hogy a konkrï¿½t tï¿½rolandï¿½
+ *      tï¿½pusoknak milyen interfï¿½szekkel kell rendelkezniï¿½k. Hï¿½tha valamit figyelmetlensï¿½gbï¿½l nem specifikï¿½ltunk.
+ *     -Az ï¿½rtï¿½kelï¿½s egyik szempontja a hatï¿½konysï¿½g, skï¿½lï¿½zhatï¿½sï¿½g, tehï¿½t hogy nagy mennyisï¿½gï¿½ adat esetï¿½n sem mï¿½kï¿½dik
+ *      indokolatlanul lassan a kontï¿½ner.
+ * A forrï¿½st -- cï¿½lszerï¿½en az implementï¿½lï¿½ssal pï¿½ruzamosan -- dokumentï¿½lni kell doxygenstï¿½lusban.
+ *     -Minden tagvï¿½ltozï¿½hoz legyen megjegyzï¿½s fï¿½zve.
+ *     -A tagfï¿½ggvï¿½nyeknek legyen dokumentï¿½lva az ï¿½sszes bemeneti paramï¿½tere ï¿½s a visszatï¿½rï¿½si ï¿½rtï¿½ke is.
  *
  * Feladat
  * -------------------------------------------------------------------------------------------------------------------
  * Alapfeladat
- *     Készíts mátrix adattárolási struktúrát. A tárolóban "flat" módon, azaz egydimenziós tömbben legyenek tárolva az
- *     adatok (pl. vector-ban). A mátrixnak legyenek konstruktorai; sorait, oszlopait, celláit lehessen elérni, módosítani;
- *     és a teljes mátrixnak is legyen kiíró és beolvasó eljárása.
+ *     Kï¿½szï¿½ts mï¿½trix adattï¿½rolï¿½si struktï¿½rï¿½t. A tï¿½rolï¿½ban "flat" mï¿½don, azaz egydimenziï¿½s tï¿½mbben legyenek tï¿½rolva az
+ *     adatok (pl. vector-ban). A mï¿½trixnak legyenek konstruktorai; sorait, oszlopait, cellï¿½it lehessen elï¿½rni, mï¿½dosï¿½tani;
+ *     ï¿½s a teljes mï¿½trixnak is legyen kiï¿½rï¿½ ï¿½s beolvasï¿½ eljï¿½rï¿½sa.
  *
- * Speciális kiegészítõk (BLRGA6 -> 7.A.b.1)
- *     -7.A.*.* Lehessen bõvíteni a mátrixot sorral, illetve oszloppal
- *     -7.*.b.* Sok sor, kevés oszlop
- *     -7.*.*.1 A mûveletek elsõsorban a mátrix elejét érintik
+ * Speciï¿½lis kiegï¿½szï¿½tï¿½k (BLRGA6 -> 7.A.b.1)
+ *     -7.A.*.* Lehessen bï¿½vï¿½teni a mï¿½trixot sorral, illetve oszloppal
+ *     -7.*.b.* Sok sor, kevï¿½s oszlop
+ *     -7.*.*.1 A mï¿½veletek elsï¿½sorban a mï¿½trix elejï¿½t ï¿½rintik
  * */
 
 /// \mainpage FlatMatrix project
@@ -190,68 +190,6 @@ public:
             this->row_dim = 0;
             this->column_dim = 0;
         }
-    }
-
-    /// Copy constructor. It copies the values of the other matrix in accordance with its dimensions. The dimensions
-    /// are overwritten also. After the copy the two matrix have the same dimensions and elements however both matrix
-    /// has its own copy. (deep copy)
-    /// \param fm other FlatMatrix instance
-    FlatMatrix(const FlatMatrix& fm)
-    {
-        row_dim = fm.row_dim;
-        column_dim = fm.column_dim;
-        elements = fm.elements;
-    }
-
-    /// Move constructor. It moves the values of the other matrix in accordance with its dimensions. The dimensions
-    /// are overwritten also. After the move the other matrix becomes empty (no elements and the dimensions are zero).
-    /// \param fm other FlatMatrix instance
-    FlatMatrix(FlatMatrix&& fm)
-    {
-        row_dim = fm.row_dim;
-        column_dim = fm.column_dim;
-        fm.row_dim = 0;
-        fm.column_dim = 0;
-        elements = move(fm.elements);
-        /* According to the specification of vector after move assignment the source remains in valid but undefined state.
-         * The clear makes sure that no element remains in the source matrix. */
-        fm.clear();
-    }
-
-    /// Copy assignment. It copies the values of the other matrix in accordance with its dimensions. The dimensions
-    /// are overwritten also. After the copy the two matrix have the same dimensions and elements however both matrix
-    /// has its own copy. (deep copy)
-    /// \param fm other FlatMatrix instance
-    /// \return the overwritten FlatMatrix object
-    FlatMatrix& operator=(const FlatMatrix& fm)
-    {
-        if(this != &fm)
-        {
-            row_dim = fm.row_dim;
-            column_dim = fm.column_dim;
-            elements = fm.elements;
-        }
-        return *this;
-    }
-
-    /// Move assignment. It moves the values of the other matrix in accordance with its dimensions. The dimensions
-    /// are overwritten also. After the move the other matrix becomes empty (no elements and the dimensions are zero).
-    /// \param fm other FlatMatrix instance
-    /// \return the overwritten FlatMatrix object
-    FlatMatrix& operator=(FlatMatrix&& fm)
-    {
-        if(this != &fm)
-        {
-            row_dim = fm.row_dim;
-            column_dim = fm.column_dim;
-            fm.row_dim = 0;
-            fm.column_dim = 0;
-            elements = move(fm.elements);
-            /* According to the specification of vector after move assignment the source remains in valid but undefined state.
-             * The clear makes sure that no element remains in the source matrix. */
-            fm.clear();
-        }
-        return *this;
     }
 
     /// Clears the elements of the matrix and sets the dimensions to zero.
