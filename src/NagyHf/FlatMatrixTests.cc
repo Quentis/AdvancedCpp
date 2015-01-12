@@ -482,110 +482,6 @@ bool FlatMatrix_TestCase_Int_CopyConstructor(void)
     return true;
 }
 
-bool FlatMatrix_TestCase_Int_MoveConstructor(void)
-{
-    FlatMatrix<int> fm1(3,3,1);
-    FlatMatrix<int> fm2(move(fm1));
-
-    int value;
-
-    if( (fm1.get_row_dim()    != 0) ||
-        (fm1.get_column_dim() != 0) )
-    {
-        return false;
-    }
-
-    if(!fm2.get_element(2,2,value))
-    {
-        return false;
-    }
-
-    if(value != 1)
-    {
-        return false;
-    }
-    return true;
-}
-
-bool FlatMatrix_TestCase_Int_OperatorAssignAndMove(void)
-{
-    FlatMatrix<int> fm1(2, 3, 15);
-    FlatMatrix<int> fm2;
-    FlatMatrix<int> fm3;
-
-    fm2 = fm1;
-
-    if( (fm1.get_row_dim()    == 0) ||
-        (fm1.get_column_dim() == 0) )
-    {
-        return false;
-    }
-
-    int value;
-    if(!fm2.get_element(1,1,value))
-    {
-        return false;
-    }
-    else
-    {
-        if(value != 15)
-        {
-            return false;
-        }
-    }
-
-    if(!fm2.get_element(2,3,value))
-    {
-        return false;
-    }
-    else
-    {
-        if(value != 15)
-        {
-            return false;
-        }
-    }
-
-    if(!fm2.set_element(2,1,6))
-    {
-        return false;
-    }
-
-    fm3 = move(fm2);
-
-    if( (fm2.get_row_dim()    != 0) ||
-        (fm2.get_column_dim() != 0) )
-    {
-        return false;
-    }
-
-    if(!fm3.get_element(2,1,value))
-    {
-        return false;
-    }
-    else
-    {
-        if(value != 6)
-        {
-            return false;
-        }
-    }
-
-    if(!fm3.get_element(2,2,value))
-    {
-        return false;
-    }
-    else
-    {
-        if(value != 15)
-        {
-            return false;
-        }
-    }
-
-    return true;
-}
-
 bool FlatMatrix_TestCase_Int_Serialize(void)
 {
     FlatMatrix<int> fm1;
@@ -886,10 +782,6 @@ int main(int argc, char *argv[])
                            "FlatMatrix_TestCase_Int_MixSet"},
             testcase_info_t{FlatMatrix_TestCase_Int_CopyConstructor,
                            "FlatMatrix_TestCase_Int_CopyConstructor"},
-            testcase_info_t{FlatMatrix_TestCase_Int_MoveConstructor,
-                           "FlatMatrix_TestCase_Int_MoveConstructor"},
-            testcase_info_t{FlatMatrix_TestCase_Int_OperatorAssignAndMove,
-                           "FlatMatrix_TestCase_Int_OperatorAssignAndMove"},
             testcase_info_t{FlatMatrix_TestCase_Int_Serialize,
                            "FlatMatrix_TestCase_Int_Serialize"},
             testcase_info_t{FlatMatrix_TestCase_Dbl_Serialize,
