@@ -478,11 +478,11 @@ public:
     /// \return true if the passed indexes are in range of dimensions (otherwise false)
     bool set_column(const vector<Type>& column_vector, const unsigned column_idx)
     {
-        if( (1 <= column_idx) && (column_idx <= row_dim) && (column_vector.size() == row_dim))
+        if( (1 <= column_idx) && (column_idx <= column_dim) && (column_vector.size() == row_dim))
         {
             unsigned column_flat_idx = elements.size() - column_dim + column_idx - 1;
 
-            for(unsigned idx = 0; idx < column_dim; idx++)
+            for(unsigned idx = 0; idx < row_dim; idx++)
             {
                 elements[column_flat_idx - idx * column_dim] = column_vector[idx];
             }
